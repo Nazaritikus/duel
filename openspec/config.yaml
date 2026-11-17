@@ -1,0 +1,19 @@
+schema: spec-driven
+
+context: |
+  Duel — browser game for 2 players based on a TV "duel" format: a photo is shown,
+  players answer in turns on chess-clock timers. The host shares this browser tab
+  on a video call (Zoom/Meet/Discord); there is no realtime/multiplayer backend.
+  Stack: Vite + React + TypeScript, Supabase (Postgres, Storage, Auth), Vercel.
+  All UI copy is Ukrainian. Write OpenSpec artifacts in English; keep SHALL/WHEN/THEN keywords.
+  Design (source of truth for UI): https://claude.ai/artifact/GKXno9183U6HMvp5GGtsqi
+  Screen-share constraints: 16:9 layout, high contrast (min 4.5:1), large type,
+  no information conveyed by opacity alone (video compression destroys it).
+
+rules:
+  proposal:
+    - State what is out of scope
+    - Call out any change to game rules explicitly; rules live in specs/game-engine
+  tasks:
+    - Game logic tasks come with Vitest unit tests
+    - Break tasks into chunks of max 2 hours

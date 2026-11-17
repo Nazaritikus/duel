@@ -1,0 +1,28 @@
+:root {
+  --bg: #0b0d12;
+  --surface: #151922;
+  --text: #f3f4f6;
+  --text-muted: #9ca3af;
+  --player-1: #f5a524;
+  --player-2: #3bc9f5;
+  --correct: #30a46c;
+  --wrong: #e5484d;
+  --frozen-text: #c4c9d2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.placeholder {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
