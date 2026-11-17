@@ -9,7 +9,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 |---|---|---|---|
 | 1 | `add-game-engine-core` | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out |
 | 2 | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting |
-| 3 | `add-play-screen` | ○ | Playable game screen with hotkeys on mock data |
+| 3 | `add-play-screen` | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards |
 | 4 | `add-game-flow-screens` | ○ | Setup → countdown → game → result → rematch. **Offline MVP** |
 | 5 | `add-supabase-foundation` | ○ | Schema, RLS, storage, types, seed, Vercel preview |
 | 6 | `add-admin-categories` | ○ | Admin login, categories CRUD, publish validation |
@@ -64,22 +64,48 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Done when every scenario in `openspec/specs/game-engine/spec.md` has a test
 - Prompt: `/openspec-propose "complete game engine rules: countdown, pause, shuffle, photos exhausted and draw, stats, time formatting"`
 
-### 3. `add-play-screen`
+### 3. `add-play-screen` — ✔ archived as `2026-11-17-add-play-screen`
+- **Summary.**
+  - App shell: router (`/`, `/play`, `/admin/*` stub), design tokens, fonts.
+  - `Stage`: 1440×810, scaled and letterboxed.
+  - Game screen with all states: turn, last 10 s, correct, wrong/pass, answer photo, pause.
+  - Interim countdown and result views.
+  - Mock category of 12 generated SVGs (`scripts/generate-mock.mjs`).
+  - 92 Vitest tests in total.
+- **API (`src/features/play`):**
+  - `PlayPage({ loadCategory, clock, names, initialSeed })`;
+  - `useGame({ photoIds, seed, settings, clock })` → `{ state, now, command }`;
+  - `useHostHotkeys(onHotkey)`, which matches `KeyboardEvent.code`;
+  - `getPanelView(state, player, now)`;
+  - `computeStageScale(w, h)`;
+  - the `PlayCategory` / `PlayPhoto` types and `loadMockCategory()`.
+- **Spec changes in `game-ui`:**
+  - added "Fixed 16:9 stage" and "Pause overlay" (the photo is not rendered while paused);
+  - "Game screen" gains the header and the photo frame;
+  - "Feedback states" gains the next-player and next-photo hints, with gender-neutral copy;
+  - "Host hotkeys" match physical keys and ignore auto-repeat.
+- **Deviations from the artboards:**
+  - the pause overlay leaves the status bar readable;
+  - "Наступний хід: <ім'я>" replaces the case-dependent copy.
+
+**Original plan:**
 - App shell: routing (`/`, `/play`, `/admin/*` stub), fonts, design tokens
 - 16:9 `Stage` scaled to the window
 - Game screen: photo (`object-fit: contain`), status bar, active / "Заморожено", last-10-s state
 - Feedback states (green 2 s, red 3 s "Помилка" / "Пас"), answer photo when present
+- Pause overlay (`Space`), photo hidden while paused — moved here from phase 4 (same Game artboard)
+- Interim countdown and result views so `/play` runs end to end (replaced in phase 4)
 - `useGameLoop` (rAF → `tick`), `useHostHotkeys` (ignored while focus is in an input)
 - Mock category in `public/mock/`
 - Done when `/play` can be played to the end with the keyboard and matches the design
 - Prompt: `/openspec-propose "play screen: stage 16:9, photo, status bar, feedback states, host hotkeys, mock category"`
 
 ### 4. `add-game-flow-screens` — offline MVP
-- Setup (names, category with search, 45/60/90 s, who starts), countdown, pause overlay, `Esc` exit with confirmation
+- Setup (names, category with search, 45/60/90 s, who starts), designed countdown screen, `Esc` exit with confirmation
 - Result: winner / draw, reason, stats, "Реванш", "Інша категорія"
 - Component tests for Setup → Game → Result
 - Done when a full duel with rematch can be played on mock data
-- Prompt: `/openspec-propose "game flow: setup, countdown, pause overlay, result and rematch"`
+- Prompt: `/openspec-propose "game flow: setup, countdown, result and rematch, esc exit"`
 
 ### 5. `add-supabase-foundation`
 - Migrations `categories`, `photos` (`answer_storage_path`, `is_vertical`, `position`), indexes, `updated_at` trigger

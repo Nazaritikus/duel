@@ -1,0 +1,90 @@
+{
+  "id": "demo",
+  "name": "Фігури та кольори",
+  "photos": [
+    {
+      "id": "red-circle",
+      "src": "/mock/red-circle.svg",
+      "answerSrc": null,
+      "answer": "Червоне коло",
+      "isVertical": false
+    },
+    {
+      "id": "blue-square",
+      "src": "/mock/blue-square.svg",
+      "answerSrc": null,
+      "answer": "Синій квадрат",
+      "isVertical": false
+    },
+    {
+      "id": "green-triangle",
+      "src": "/mock/green-triangle.svg",
+      "answerSrc": "/mock/green-triangle.answer.svg",
+      "answer": "Зелений трикутник",
+      "isVertical": false
+    },
+    {
+      "id": "yellow-star",
+      "src": "/mock/yellow-star.svg",
+      "answerSrc": null,
+      "answer": "Жовта зірка",
+      "isVertical": false
+    },
+    {
+      "id": "purple-hexagon",
+      "src": "/mock/purple-hexagon.svg",
+      "answerSrc": null,
+      "answer": "Фіолетовий шестикутник",
+      "isVertical": true
+    },
+    {
+      "id": "orange-ring",
+      "src": "/mock/orange-ring.svg",
+      "answerSrc": null,
+      "answer": "Помаранчеве кільце",
+      "isVertical": false
+    },
+    {
+      "id": "cyan-diamond",
+      "src": "/mock/cyan-diamond.svg",
+      "answerSrc": "/mock/cyan-diamond.answer.svg",
+      "answer": "Блакитний ромб",
+      "isVertical": false
+    },
+    {
+      "id": "pink-heart",
+      "src": "/mock/pink-heart.svg",
+      "answerSrc": null,
+      "answer": "Рожеве серце",
+      "isVertical": false
+    },
+    {
+      "id": "white-cross",
+      "src": "/mock/white-cross.svg",
+      "answerSrc": null,
+      "answer": "Білий хрест",
+      "isVertical": true
+    },
+    {
+      "id": "lime-pentagon",
+      "src": "/mock/lime-pentagon.svg",
+      "answerSrc": null,
+      "answer": "Салатовий пʼятикутник",
+      "isVertical": false
+    },
+    {
+      "id": "brown-oval",
+      "src": "/mock/brown-oval.svg",
+      "answerSrc": null,
+      "answer": "Коричневий овал",
+      "isVertical": false
+    },
+    {
+      "id": "teal-arrow",
+      "src": "/mock/teal-arrow.svg",
+      "answerSrc": null,
+      "answer": "Бірюзова стрілка",
+      "isVertical": false
+    }
+  ]
+}
