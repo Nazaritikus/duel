@@ -1,0 +1,230 @@
+[
+  {
+    "id": "shapes",
+    "name": "Фігури та кольори",
+    "photos": [
+      {
+        "id": "shapes-red-circle",
+        "src": "/mock/shapes/red-circle.svg",
+        "answerSrc": null,
+        "answer": "Червоне коло",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-blue-square",
+        "src": "/mock/shapes/blue-square.svg",
+        "answerSrc": null,
+        "answer": "Синій квадрат",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-green-triangle",
+        "src": "/mock/shapes/green-triangle.svg",
+        "answerSrc": "/mock/shapes/green-triangle.answer.svg",
+        "answer": "Зелений трикутник",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-yellow-star",
+        "src": "/mock/shapes/yellow-star.svg",
+        "answerSrc": null,
+        "answer": "Жовта зірка",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-purple-hexagon",
+        "src": "/mock/shapes/purple-hexagon.svg",
+        "answerSrc": null,
+        "answer": "Фіолетовий шестикутник",
+        "isVertical": true
+      },
+      {
+        "id": "shapes-orange-ring",
+        "src": "/mock/shapes/orange-ring.svg",
+        "answerSrc": null,
+        "answer": "Помаранчеве кільце",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-cyan-diamond",
+        "src": "/mock/shapes/cyan-diamond.svg",
+        "answerSrc": "/mock/shapes/cyan-diamond.answer.svg",
+        "answer": "Блакитний ромб",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-pink-heart",
+        "src": "/mock/shapes/pink-heart.svg",
+        "answerSrc": null,
+        "answer": "Рожеве серце",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-white-cross",
+        "src": "/mock/shapes/white-cross.svg",
+        "answerSrc": null,
+        "answer": "Білий хрест",
+        "isVertical": true
+      },
+      {
+        "id": "shapes-lime-pentagon",
+        "src": "/mock/shapes/lime-pentagon.svg",
+        "answerSrc": null,
+        "answer": "Салатовий пʼятикутник",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-brown-oval",
+        "src": "/mock/shapes/brown-oval.svg",
+        "answerSrc": null,
+        "answer": "Коричневий овал",
+        "isVertical": false
+      },
+      {
+        "id": "shapes-teal-arrow",
+        "src": "/mock/shapes/teal-arrow.svg",
+        "answerSrc": null,
+        "answer": "Бірюзова стрілка",
+        "isVertical": false
+      }
+    ]
+  },
+  {
+    "id": "digits",
+    "name": "Цифри",
+    "photos": [
+      {
+        "id": "digits-digit-0",
+        "src": "/mock/digits/digit-0.svg",
+        "answerSrc": null,
+        "answer": "Нуль",
+        "isVertical": false
+      },
+      {
+        "id": "digits-digit-1",
+        "src": "/mock/digits/digit-1.svg",
+        "answerSrc": null,
+        "answer": "Один",
+        "isVertical": true
+      },
+      {
+        "id": "digits-digit-2",
+        "src": "/mock/digits/digit-2.svg",
+        "answerSrc": null,
+        "answer": "Два",
+        "isVertical": false
+      },
+      {
+        "id": "digits-digit-3",
+        "src": "/mock/digits/digit-3.svg",
+        "answerSrc": null,
+        "answer": "Три",
+        "isVertical": false
+      },
+      {
+        "id": "digits-digit-4",
+        "src": "/mock/digits/digit-4.svg",
+        "answerSrc": null,
+        "answer": "Чотири",
+        "isVertical": false
+      },
+      {
+        "id": "digits-digit-5",
+        "src": "/mock/digits/digit-5.svg",
+        "answerSrc": null,
+        "answer": "Пʼять",
+        "isVertical": false
+      },
+      {
+        "id": "digits-digit-6",
+        "src": "/mock/digits/digit-6.svg",
+        "answerSrc": null,
+        "answer": "Шість",
+        "isVertical": false
+      },
+      {
+        "id": "digits-digit-7",
+        "src": "/mock/digits/digit-7.svg",
+        "answerSrc": null,
+        "answer": "Сім",
+        "isVertical": true
+      },
+      {
+        "id": "digits-digit-8",
+        "src": "/mock/digits/digit-8.svg",
+        "answerSrc": "/mock/digits/digit-8.answer.svg",
+        "answer": "Вісім",
+        "isVertical": false
+      },
+      {
+        "id": "digits-digit-9",
+        "src": "/mock/digits/digit-9.svg",
+        "answerSrc": null,
+        "answer": "Девʼять",
+        "isVertical": false
+      }
+    ]
+  },
+  {
+    "id": "arrows",
+    "name": "Стрілки",
+    "photos": [
+      {
+        "id": "arrows-arrow-0",
+        "src": "/mock/arrows/arrow-0.svg",
+        "answerSrc": null,
+        "answer": "Вправо",
+        "isVertical": false
+      },
+      {
+        "id": "arrows-arrow-45",
+        "src": "/mock/arrows/arrow-45.svg",
+        "answerSrc": null,
+        "answer": "Вниз-вправо",
+        "isVertical": false
+      },
+      {
+        "id": "arrows-arrow-90",
+        "src": "/mock/arrows/arrow-90.svg",
+        "answerSrc": null,
+        "answer": "Вниз",
+        "isVertical": true
+      },
+      {
+        "id": "arrows-arrow-135",
+        "src": "/mock/arrows/arrow-135.svg",
+        "answerSrc": null,
+        "answer": "Вниз-вліво",
+        "isVertical": false
+      },
+      {
+        "id": "arrows-arrow-180",
+        "src": "/mock/arrows/arrow-180.svg",
+        "answerSrc": null,
+        "answer": "Вліво",
+        "isVertical": false
+      },
+      {
+        "id": "arrows-arrow-225",
+        "src": "/mock/arrows/arrow-225.svg",
+        "answerSrc": null,
+        "answer": "Вгору-вліво",
+        "isVertical": false
+      },
+      {
+        "id": "arrows-arrow-270",
+        "src": "/mock/arrows/arrow-270.svg",
+        "answerSrc": null,
+        "answer": "Вгору",
+        "isVertical": false
+      },
+      {
+        "id": "arrows-arrow-315",
+        "src": "/mock/arrows/arrow-315.svg",
+        "answerSrc": null,
+        "answer": "Вгору-вправо",
+        "isVertical": false
+      }
+    ]
+  }
+]

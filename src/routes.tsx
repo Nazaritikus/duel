@@ -1,10 +1,12 @@
 import { createBrowserRouter } from 'react-router-dom'
-import { AdminStub, HomePage } from './pages'
-import { PlayPage } from './features/play/PlayPage'
+import { GameFlow } from './features/play/GameFlow'
+import { createMockCategorySource } from './features/play/mockCategorySource'
+import { AdminStub } from './pages'
+
+const categorySource = createMockCategorySource()
 
 export const routes = [
-  { path: '/', element: <HomePage /> },
-  { path: '/play', element: <PlayPage /> },
+  { path: '/', element: <GameFlow source={categorySource} /> },
   { path: '/admin/*', element: <AdminStub /> },
 ]
 

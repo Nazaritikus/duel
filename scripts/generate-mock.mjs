@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Generates the mock category used by /play until Supabase is connected (phase 8):
-// simple SVG "photos" (shape + colour) and public/mock/category.json.
+// Generates the mock catalog used by the game flow until Supabase is connected (phase 8):
+// three categories of simple SVG "photos" and public/mock/catalog.json.
 // Run: node scripts/generate-mock.mjs
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -92,16 +92,67 @@ function shapeSvg(shape, color, cx, cy, r) {
   }
 }
 
+const DIGITS = [
+  ['Нуль', '#E5484D'],
+  ['Один', '#F5A524'],
+  ['Два', '#30A46C'],
+  ['Три', '#3BC9F5'],
+  ['Чотири', '#8B5CF6'],
+  ['Пʼять', '#EC4899'],
+  ['Шість', '#F97316'],
+  ['Сім', '#A3E635'],
+  ['Вісім', '#14B8A6'],
+  ['Девʼять', '#F5C524'],
+].map(([answer, color], n) => ({
+  id: `digit-${n}`,
+  answer,
+  draw: (w, h, cy) =>
+    `<text x="${w / 2}" y="${cy}" fill="${color}" font-family="Inter, system-ui, sans-serif" font-size="${Math.round(Math.min(w, h) * 0.7)}" font-weight="800" text-anchor="middle" dominant-baseline="central">${n}</text>`,
+  vertical: n === 1 || n === 7,
+  answerPhoto: n === 8,
+}))
+
+const DIRECTIONS = [
+  ['Вправо', 0],
+  ['Вниз-вправо', 45],
+  ['Вниз', 90],
+  ['Вниз-вліво', 135],
+  ['Вліво', 180],
+  ['Вгору-вліво', 225],
+  ['Вгору', 270],
+  ['Вгору-вправо', 315],
+]
+const ARROWS = DIRECTIONS.map(([answer, deg], i) => ({
+  id: `arrow-${deg}`,
+  answer,
+  draw: (w, h, cy) => {
+    const r = Math.min(w, h) * 0.3
+    return `<g transform="rotate(${deg} ${w / 2} ${cy})">${shapeSvg('arrow', '#F3F4F6', w / 2, cy, r)}</g>`
+  },
+  vertical: i === 2,
+  answerPhoto: false,
+}))
+
+const SHAPES = ITEMS.map((item) => ({
+  ...item,
+  draw: (w, h, cy) => shapeSvg(item.shape, item.color, w / 2, cy, Math.min(w, h) * 0.28),
+}))
+
+const CATEGORIES = [
+  { id: 'shapes', name: 'Фігури та кольори', items: SHAPES },
+  { id: 'digits', name: 'Цифри', items: DIGITS },
+  { id: 'arrows', name: 'Стрілки', items: ARROWS },
+]
+
 function photoSvg(item, { answer = false } = {}) {
   const [w, h] = item.vertical ? [900, 1600] : [1600, 900]
-  const r = Math.min(w, h) * 0.28
   const cy = answer ? h * 0.42 : h / 2
   const label = answer
     ? `<text x="${w / 2}" y="${h * 0.85}" fill="#F3F4F6" font-family="Inter, system-ui, sans-serif" font-size="${Math.round(Math.min(w, h) * 0.07)}" font-weight="700" text-anchor="middle">${item.answer}</text>`
     : ''
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
 <rect width="${w}" height="${h}" fill="${answer ? '#1F2937' : '#2A3040'}"/>
-${shapeSvg(item.shape, item.color, w / 2, cy, r)}
+${item.draw(w, h, cy)}
 ${label}
 </svg>
 `
@@ -110,19 +161,24 @@ ${label}
 rmSync(outDir, { recursive: true, force: true })
 mkdirSync(outDir, { recursive: true })
 
-const photos = ITEMS.map((item) => {
-  writeFileSync(join(outDir, `${item.id}.svg`), photoSvg(item))
-  if (item.answerPhoto)
-    writeFileSync(join(outDir, `${item.id}.answer.svg`), photoSvg(item, { answer: true }))
-  return {
-    id: item.id,
-    src: `/mock/${item.id}.svg`,
-    answerSrc: item.answerPhoto ? `/mock/${item.id}.answer.svg` : null,
-    answer: item.answer,
-    isVertical: Boolean(item.vertical),
-  }
+const catalog = CATEGORIES.map((category) => {
+  mkdirSync(join(outDir, category.id), { recursive: true })
+  const photos = category.items.map((item) => {
+    const base = `${category.id}/${item.id}`
+    writeFileSync(join(outDir, `${base}.svg`), photoSvg(item))
+    if (item.answerPhoto) {
+      writeFileSync(join(outDir, `${base}.answer.svg`), photoSvg(item, { answer: true }))
+    }
+    return {
+      id: `${category.id}-${item.id}`,
+      src: `/mock/${base}.svg`,
+      answerSrc: item.answerPhoto ? `/mock/${base}.answer.svg` : null,
+      answer: item.answer,
+      isVertical: Boolean(item.vertical),
+    }
+  })
+  return { id: category.id, name: category.name, photos }
 })
 
-const category = { id: 'demo', name: 'Фігури та кольори', photos }
-writeFileSync(join(outDir, 'category.json'), `${JSON.stringify(category, null, 2)}\n`)
-console.log(`Wrote ${photos.length} photos to ${outDir}`)
+writeFileSync(join(outDir, 'catalog.json'), `${JSON.stringify(catalog, null, 2)}\n`)
+for (const c of catalog) console.log(`${c.name}: ${c.photos.length} photos`)

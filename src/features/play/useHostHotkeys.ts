@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-export type HostHotkey = 'correct' | 'wrong' | 'pass' | 'togglePause'
+export type HostHotkey = 'correct' | 'wrong' | 'pass' | 'togglePause' | 'exit'
 
 /** Physical keys (`KeyboardEvent.code`), so letter keys work with any layout (e.g. Ukrainian). */
 const KEY_MAP: Record<string, HostHotkey> = {
@@ -10,6 +10,7 @@ const KEY_MAP: Record<string, HostHotkey> = {
   KeyX: 'wrong',
   KeyP: 'pass',
   Space: 'togglePause',
+  Escape: 'exit',
 }
 
 function isEditable(target: EventTarget | null): boolean {
@@ -25,14 +26,18 @@ export function hotkeyFor(event: KeyboardEvent): HostHotkey | null {
   return KEY_MAP[event.code] ?? null
 }
 
-/** Listens for host hotkeys on the window; the latest handler is always used. */
-export function useHostHotkeys(onHotkey: (hotkey: HostHotkey) => void) {
+/**
+ * Listens for host hotkeys on the window; the latest handler is always used. When disabled
+ * (e.g. on the setup screen) no listener is attached, so keys keep their default behaviour.
+ */
+export function useHostHotkeys(onHotkey: (hotkey: HostHotkey) => void, enabled = true) {
   const handler = useRef(onHotkey)
   useEffect(() => {
     handler.current = onHotkey
   })
 
   useEffect(() => {
+    if (!enabled) return
     const onKeyDown = (event: KeyboardEvent) => {
       const hotkey = hotkeyFor(event)
       if (!hotkey) return
@@ -41,5 +46,5 @@ export function useHostHotkeys(onHotkey: (hotkey: HostHotkey) => void) {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [enabled])
 }

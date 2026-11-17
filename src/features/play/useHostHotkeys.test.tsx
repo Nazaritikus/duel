@@ -17,12 +17,14 @@ describe('useHostHotkeys', () => {
     fireEvent.keyDown(window, { code: 'KeyX', key: 'x' })
     fireEvent.keyDown(window, { code: 'KeyP', key: 'p' })
     fireEvent.keyDown(window, { code: 'Space', key: ' ' })
+    fireEvent.keyDown(window, { code: 'Escape', key: 'Escape' })
     expect(onHotkey.mock.calls.map((c) => c[0])).toEqual([
       'correct',
       'correct',
       'wrong',
       'pass',
       'togglePause',
+      'exit',
     ])
   })
 
@@ -62,5 +64,14 @@ describe('useHostHotkeys', () => {
     const event = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true })
     window.dispatchEvent(event)
     expect(event.defaultPrevented).toBe(true)
+  })
+
+  it('does nothing and keeps default behaviour when disabled', () => {
+    const onHotkey = vi.fn()
+    renderHook(() => useHostHotkeys(onHotkey, false))
+    const event = new KeyboardEvent('keydown', { code: 'Space', key: ' ', cancelable: true })
+    window.dispatchEvent(event)
+    expect(onHotkey).not.toHaveBeenCalled()
+    expect(event.defaultPrevented).toBe(false)
   })
 })

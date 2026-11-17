@@ -10,7 +10,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | 1 | `add-game-engine-core` | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out |
 | 2 | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting |
 | 3 | `add-play-screen` | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards |
-| 4 | `add-game-flow-screens` | ○ | Setup → countdown → game → result → rematch. **Offline MVP** |
+| 4 | `add-game-flow-screens` | ✔ 2026-11-18 | Full duel with rematch on `/` (setup → countdown → game → result), mock catalog. **Offline MVP** |
 | 5 | `add-supabase-foundation` | ○ | Schema, RLS, storage, types, seed, Vercel preview |
 | 6 | `add-admin-categories` | ○ | Admin login, categories CRUD, publish validation |
 | 7 | `add-admin-photo-management` | ○ | Bulk upload, compression, answer photos, edit/delete |
@@ -100,8 +100,35 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Done when `/play` can be played to the end with the keyboard and matches the design
 - Prompt: `/openspec-propose "play screen: stage 16:9, photo, status bar, feedback states, host hotkeys, mock category"`
 
-### 4. `add-game-flow-screens` — offline MVP
-- Setup (names, category with search, 45/60/90 s, who starts), designed countdown screen, `Esc` exit with confirmation
+### 4. `add-game-flow-screens` — ✔ archived as `2026-11-18-add-game-flow-screens` — offline MVP
+- **Summary.**
+  - `GameFlow` on `/`: setup → countdown → game → result → rematch / another category.
+  - Setup screen: names, category search, 45/60/90 s, penalty 3/5 s, who starts, settings remembered in `localStorage`.
+  - Countdown and result screens per the artboards.
+  - `Esc` exit with an in-page confirmation.
+  - Mock catalog of 3 categories.
+  - 135 Vitest tests in total.
+- **API (`src/features/play`):**
+  - `GameFlow({ source, clock, storage, newSeed })`;
+  - the `CategorySource` interface (`listCategories`, `loadCategory`) with `createMockCategorySource()`;
+  - `loadSetup` / `saveSetup` / `displayNames` (`duel.setup.v1`);
+  - `pluralUk`;
+  - `useHostHotkeys(onHotkey, enabled)` with `'exit'`.
+- **Spec changes:**
+  - **`game-engine`:** the penalty is 3 or 5 s, chosen in setup.
+  - **`game-ui`:**
+    - "Setup screen" gains the penalty choice, name fallback, remembered settings and the start rules;
+    - "Feedback states" shows the chosen penalty;
+    - "Result screen" gains the remaining time, stats and actions, with gender-neutral copy;
+    - added "Countdown screen" and "Exit to menu".
+- **Deviations from the artboards:**
+  - the result header shows the photo count instead of the game duration;
+  - "Перемога" and "залишилось m:ss" replace the gendered copy;
+  - the result kicker uses the winner's colour.
+
+**Original plan:**
+- Setup (names, category with search, 45/60/90 s, penalty 3/5 s, who starts, remembered settings), designed countdown screen, `Esc` exit with in-page confirmation
+- One flow on `/` (setup → countdown → game → result); `/play` and interim views removed; mock catalog of 3 categories behind a `CategorySource` interface
 - Result: winner / draw, reason, stats, "Реванш", "Інша категорія"
 - Component tests for Setup → Game → Result
 - Done when a full duel with rematch can be played on mock data

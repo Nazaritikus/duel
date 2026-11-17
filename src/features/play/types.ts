@@ -15,3 +15,15 @@ export interface PlayCategory {
 }
 
 export type PlayerNames = readonly [string, string]
+
+export interface CategorySummary {
+  id: string
+  name: string
+  photoCount: number
+}
+
+/** Where the game gets its categories; mock for now, Supabase in phase 8. */
+export interface CategorySource {
+  listCategories(): Promise<CategorySummary[]>
+  loadCategory(id: string): Promise<PlayCategory>
+}
