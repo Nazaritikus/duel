@@ -9,9 +9,10 @@ Browser game for two players in the TV "duel" format. A photo from a category is
 
 ## Stack
 - Vite + React 19 + TypeScript, `react-router-dom`
-- Supabase: Postgres, Storage (bucket `photos`), Auth (single admin, magic link)
+- Supabase: Postgres, Storage (private bucket `photos`), Auth (admins on an allowlist, magic link)
 - Vitest + Testing Library, oxlint, Prettier
-- Deploy: Vercel
+- Deploy: Vercel (CLI, project `duel`; previews are behind Vercel auth, production from phase 7)
+- Supabase and Vercel CLIs are devDependencies: always `npx supabase …` / `npx vercel …`
 
 ## Commands
 ```bash
@@ -21,9 +22,21 @@ npm run build      # type-check + production build
 npm test           # vitest
 npm run lint       # oxlint
 npm run format     # prettier
+
+npm run db:start   # local Supabase stack (Docker)
+npm run db:reset   # re-apply all migrations to the local DB
+npm run db:types   # regenerate src/lib/database.types.ts from the local DB
+npm run db:seed    # upload the mock catalog (add `-- --remote` for the cloud project)
+npm run db:grant-admin -- [--remote] <email>
+npm run test:db    # RLS / storage policy tests against the local stack
 ```
 
-Env vars live in `.env.local` (see `.env.example`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+- Env vars live in `.env` / `.env.local`, see `.env.example`. Both files are git-ignored.
+  - Browser: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
+  - Scripts only: `SUPABASE_SECRET_KEY`. Never `VITE_`-prefix it.
+- Local scripts and tests read the local stack's keys from `supabase status`.
+- One-time owner setup: `docs/setup.md`.
+- Supabase CLI v3 is local by default; cloud commands need `--remote` (e.g. `npx supabase db push --remote`).
 
 ## Spec-driven workflow (OpenSpec)
 Every non-trivial change goes through OpenSpec. Do not change game rules in code without a spec change.
@@ -57,8 +70,18 @@ supabase/migrations/
 
 ## Data model
 - `categories`: id, name, hint, status (`draft` | `published`), cover_path, created_at, updated_at
-- `photos`: id, category_id → categories, storage_path, answer_storage_path (nullable), answer, is_vertical, position, created_at
-- RLS: anon `select` only on published categories and their photos; insert/update/delete only for the admin. Same rule for the `photos` bucket.
+- `photos`: id, category_id → categories (cascade), storage_path, answer_storage_path (nullable), answer (default ''), is_vertical, position (unique per category, deferrable), created_at
+- `admins`: user_id → auth.users. This is the allowlist; rows are written only with the secret key (`db:grant-admin`). `private.is_admin()` (security definer, non-exposed schema) is used by policies.
+- RLS:
+  - `anon` and non-admins `select` only published categories and their photos;
+  - insert / update / delete only for admins;
+  - the private `photos` bucket mirrors this per folder.
+- Storage paths: `<category_id>/<photo_id>.<ext>`, answer photo `<category_id>/<photo_id>.answer.<ext>`. Players get signed URLs.
+- `categories.updated_at` also moves when any of its photos changes (trigger).
+- Schema changes:
+  1. Only through migrations: `npx supabase migration new <name>`.
+  2. Then `db:reset`, `db:types`, `test:db`.
+  3. Then `npx supabase db push --remote`.
 
 ## Conventions
 - UI copy is Ukrainian; code, identifiers, commits and OpenSpec artifacts are English.

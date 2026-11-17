@@ -11,11 +11,11 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | 2 | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting |
 | 3 | `add-play-screen` | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards |
 | 4 | `add-game-flow-screens` | ✔ 2026-11-18 | Full duel with rematch on `/` (setup → countdown → game → result), mock catalog. **Offline MVP** |
-| 5 | `add-supabase-foundation` | ○ | Schema, RLS, storage, types, seed, Vercel preview |
+| 5 | `add-supabase-foundation` | ✔ 2026-11-18 | Schema + RLS + private storage on local and cloud Supabase, policy tests, seed, types, Vercel preview |
 | 6 | `add-admin-categories` | ○ | Admin login, categories CRUD, publish validation |
-| 7 | `add-admin-photo-management` | ○ | Bulk upload, compression, answer photos, edit/delete |
+| 7 | `add-admin-photo-management` | ○ | Bulk upload, compression, answer photos, edit/delete, production deploy |
 | 8 | `connect-game-to-supabase` | ○ | Game on published categories with preloading |
-| 9 | `polish-host-experience` | ○ | Sounds, fullscreen, host cheat sheet, production deploy |
+| 9 | `polish-host-experience` | ○ | Sounds, fullscreen, host cheat sheet, test game over a call |
 
 ```
 1 ─► 2 ─► 3 ─► 4  (offline MVP)
@@ -134,9 +134,32 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Done when a full duel with rematch can be played on mock data
 - Prompt: `/openspec-propose "game flow: setup, countdown, result and rematch, esc exit"`
 
-### 5. `add-supabase-foundation`
+### 5. `add-supabase-foundation` — ✔ archived as `2026-11-18-add-supabase-foundation`
+- **Summary.**
+  - 5 migrations: schema, triggers, `admins` + `private.is_admin()`, RLS, private bucket `photos`.
+  - Applied to the local Docker stack and to the cloud project `Duel`; advisors are clean.
+  - 19 RLS / storage policy tests (`npm run test:db`); 137 unit tests.
+  - Mock catalog seeded locally and in the cloud.
+  - Vercel project `duel` with a preview deploy (behind Vercel auth).
+- **API / tooling:**
+  - `getSupabase()` (lazy, typed by `src/lib/database.types.ts`);
+  - npm scripts `db:start|stop|reset|types|seed|grant-admin`, `test:db`;
+  - `scripts/supabase-env.mjs` (local keys from `supabase status`, `--remote` from `.env`);
+  - `docs/setup.md`;
+  - `vercel.json` (SPA rewrite);
+  - env vars `VITE_SUPABASE_PUBLISHABLE_KEY` / `SUPABASE_SECRET_KEY`.
+- **Spec changes in `admin`:**
+  - "Admin authentication": an allowlist of one or more admins, with scenarios for drafts, non-admins and a second admin;
+  - added "Content storage layout" (private bucket, paths, signed URLs);
+  - added "Data integrity" (cascade delete, unique position, category last-update).
+- **Notes:**
+  - the production deploy moved to phase 7;
+  - Supabase CLI v3 needs `--remote` for cloud commands.
+
+**Original plan:**
 - Migrations `categories`, `photos` (`answer_storage_path`, `is_vertical`, `position`), indexes, `updated_at` trigger
-- RLS: anon reads published only; admin-only writes; `photos` bucket policies
+- RLS: anon reads published only; admin-only writes (admin = `admins` allowlist + `is_admin()`); private `photos` bucket with folder-based policies
+- Local Docker stack for dev and RLS tests (`npm run test:db`), cloud project for the preview; CLIs as devDependencies
 - Generated TS types, `src/lib/supabase.ts`, seed with the mock category, Vercel preview deploy
 - Done when migrations apply to a clean DB, anon writes are rejected, preview deploy opens
 - Prompt: `/openspec-propose "supabase foundation: schema, RLS, storage bucket, generated types, seed, vercel deploy"`
@@ -152,8 +175,9 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - File name → answer; `<name>.answer.<ext>` → answer photo
 - Card grid: inline answer edit, add/replace/remove answer photo, "вертикальне" badge, delete with storage files
 - Unit tests for file-name parsing and pairing
-- Done when a 60+ photo category can be filled in minutes and published
-- Prompt: `/openspec-propose "admin photo management: bulk upload, compression, filename answers, answer photos, edit and delete"`
+- Production deploy on Vercel (moved from phase 9), so a content editor can fill categories from their own device; grant them with `db:grant-admin`
+- Done when a 60+ photo category can be filled in minutes and published, and the editor can do it on the production URL
+- Prompt: `/openspec-propose "admin photo management: bulk upload, compression, filename answers, answer photos, edit and delete, production deploy"`
 
 ### 8. `connect-game-to-supabase`
 - Setup lists published categories from Supabase; photos loaded before start
@@ -165,6 +189,6 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 ### 9. `polish-host-experience`
 - Sounds (correct, wrong, last-10-s ticking, game over) with mute
 - Fullscreen, hotkeys cheat sheet and host instructions on the setup screen
-- Production deploy, test game over Zoom / Meet
+- Test game over Zoom / Meet on the production deploy (deployed since phase 7)
 - Done when a real test game over a video call has been played
-- Prompt: `/openspec-propose "polish host experience: sounds, fullscreen, hotkeys cheat sheet, host instructions, production deploy"`
+- Prompt: `/openspec-propose "polish host experience: sounds, fullscreen, hotkeys cheat sheet, host instructions"`
