@@ -80,6 +80,7 @@ npx vercel deploy                                           # prints the preview
 - **URL:** https://duel-sand.vercel.app (game on `/`, admin on `/admin`). Production is public; previews stay behind Vercel auth.
 - **Env vars:** `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set for Production as well as Preview. Never add `SUPABASE_SECRET_KEY` to Vercel.
 - **Deploy:** `npx vercel deploy --prod`.
+- **Game catalog:** the game plays published categories from Supabase. Set `VITE_CATEGORY_SOURCE=mock` to play the generated mock catalog instead; the mock is also used automatically when the Supabase vars are missing (unit tests, offline work).
 - **Supabase Auth URLs:** the cloud project's Site URL is the production URL. Its redirect URLs are `<prod>/admin`, `http://localhost:5173/admin` and `http://127.0.0.1:5173/admin`. They were set by pushing a minimal config that declares only these two settings. **Do not `supabase config push` the repo's `config.toml`:** it holds local-only values (MFA, confirmations, pooler) that differ from the cloud. To change the URLs again, push a config that declares only `[auth] site_url` and `additional_redirect_urls`:
   ```bash
   mkdir -p /tmp/auth-urls/supabase && cat > /tmp/auth-urls/supabase/config.toml <<'TOML'

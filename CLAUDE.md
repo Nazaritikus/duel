@@ -67,6 +67,7 @@ supabase/migrations/
 ```
 - `src/game` is framework-free and fully unit-tested. UI dispatches actions (`correct`, `wrong`, `pass`, `pause`, `tick(now)`) and renders state.
 - Time is derived from `performance.now()` timestamps stored in state, never from counting ticks. Rendering uses `requestAnimationFrame`.
+- The game reads categories through `CategorySource`: Supabase (published only, signed URLs, supabase-js lazy-loaded) by default, the mock catalog with `VITE_CATEGORY_SOURCE=mock` or when Supabase env is missing (unit tests blank it in `vite.config.ts`). Photos are decoded ahead with `createImagePreloader`.
 
 ## Data model
 - `categories`: id, name, hint, status (`draft` | `published`), cover_path, created_at, updated_at

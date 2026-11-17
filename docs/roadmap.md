@@ -14,7 +14,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | 5   | `add-supabase-foundation`    | ✔ 2026-11-18 | Schema + RLS + private storage on local and cloud Supabase, policy tests, seed, types, Vercel preview                        |
 | 6   | `add-admin-categories`       | ✔ 2026-11-18 | Magic-link admin login with allowlist guard, categories list/editor, publish rule in UI and DB                               |
 | 7   | `add-admin-photo-management` | ✔ 2026-11-18 | Bulk upload (WebP ≤1600 px, answers from file names), photo grid editing, covers, production on https://duel-sand.vercel.app |
-| 8   | `connect-game-to-supabase`   | ○            | Game on published categories with preloading                                                                                 |
+| 8   | `connect-game-to-supabase`   | ✔ 2026-11-18 | Game plays published Supabase categories; first photos decoded before start, next 3 preloaded; mock behind a flag            |
 | 9   | `polish-host-experience`     | ○            | Sounds, fullscreen, host cheat sheet, test game over a call                                                                  |
 
 ```
@@ -219,7 +219,22 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Done when a 60+ photo category can be filled in minutes and published, and the editor can do it on the production URL
 - Prompt: `/openspec-propose "admin photo management: bulk upload, compression, filename answers, answer photos, edit and delete, production deploy"`
 
-### 8. `connect-game-to-supabase`
+### 8. `connect-game-to-supabase` — ✔ archived as `2026-11-18-connect-game-to-supabase`
+
+- **Summary.**
+  - `createSupabaseCategorySource`:
+    - lists published categories (an explicit filter, so an admin session in the same browser does not leak drafts), with photo counts, sorted by name;
+    - loads a category with 6 h signed URLs;
+    - supabase-js is a lazy chunk.
+  - `createCategorySource(env)`: Supabase by default; the mock with `VITE_CATEGORY_SOURCE=mock` or when Supabase env is missing (unit tests blank it).
+  - Start: load → seeded order → decode the first 3 photos and their answer photos (max 8 s) → countdown. During the game the current photo and the next 3 (with answer photos) are decoded through `createImagePreloader` (LRU of 12).
+  - «Фото не завантажилось» replaces a broken image.
+  - Production redeployed and plays the cloud catalog. 209 unit tests, 30 DB tests.
+- **API (`src/features/play`):** `createSupabaseCategorySource(getClient?)`, `createCategorySource(env)` / `categorySourceKind`, `createImagePreloader({ createImage, capacity })`, `upcomingSources(photoIds, index, byId, ahead)`, and the `GameFlow` `preloader` prop.
+- **Spec changes in `game-ui`:** "Preloading" gains a "What is preloaded" scenario; added "Category source", "Loading before start", "Photo load failure".
+- **Note:** the cloud still holds the 3 seeded mock categories (published in phase 5); delete them in the admin once real categories exist.
+
+**Original plan:**
 
 - Setup lists published categories from Supabase; photos loaded before start
 - Preload next 2–3 photos plus answer photos (`img.decode()`)

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { routes } from './routes'
 
 describe('routes', () => {
+  // routes.tsx picks the catalog at import time; the mock is used when Supabase env is absent.
   it('renders the setup screen on /', async () => {
     vi.stubGlobal(
       'fetch',
@@ -17,11 +18,9 @@ describe('routes', () => {
   })
 
   it('lazy-loads the admin, which explains missing Supabase config', async () => {
-    vi.stubEnv('VITE_SUPABASE_URL', '')
     render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ['/admin/x'] })} />)
     expect(
       await screen.findByRole('heading', { name: 'Supabase не налаштовано' }, { timeout: 5000 }),
     ).toBeInTheDocument()
-    vi.unstubAllEnvs()
   })
 })

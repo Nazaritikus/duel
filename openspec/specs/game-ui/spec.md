@@ -96,6 +96,10 @@ The next 2–3 photos and their answer photos SHALL be preloaded so a new photo 
 - **WHEN** the turn passes
 - **THEN** the next photo is already decoded and displays without a loading state
 
+#### Scenario: What is preloaded
+- **WHEN** photo 5 of the shuffled order is shown
+- **THEN** photo 5's answer photo and photos 6–8 with their answer photos are requested and decoded in the background
+
 ### Requirement: Result screen
 The result screen SHALL show the winner or "Нічия", the end reason ("Час суперника вичерпано" / "Фото закінчились"), the winner's remaining time, each player's stats (correct, wrong, pass), and actions "Реванш" and "Інша категорія". Copy SHALL not depend on the grammatical gender or case of player names.
 
@@ -166,3 +170,32 @@ Before the first turn the game SHALL show a countdown screen with the category n
 #### Scenario: Judging keys ignored in the dialog
 - **WHEN** the confirmation is open and the host presses `X`
 - **THEN** no answer is marked and the dialog stays open
+
+### Requirement: Category source
+The setup screen SHALL list only published categories from the database with their photo counts, sorted by name, and a duel SHALL use that category's photos and answers. Draft categories SHALL NOT be listed even when the browser has a signed-in admin session. A configuration flag SHALL switch the game to the built-in mock catalog.
+
+#### Scenario: Published only for a signed-in admin
+- **WHEN** an admin is signed in on the same browser and a draft category exists
+- **THEN** the setup screen does not list the draft
+
+#### Scenario: Mock catalog
+- **WHEN** the app runs with the mock flag or without database settings
+- **THEN** the setup screen lists the mock catalog
+
+### Requirement: Loading before start
+Starting a duel SHALL load the category and decode its first three photos (in the shuffled order) and their answer photos before the countdown, waiting at most 8 seconds. While loading, the start button SHALL say «Завантаження…»; if the category cannot be loaded, an error SHALL be shown and the setup screen SHALL stay.
+
+#### Scenario: First photo ready
+- **WHEN** the countdown ends
+- **THEN** the first photo is already decoded and appears immediately
+
+#### Scenario: Category fails to load
+- **WHEN** the database cannot be reached after «Почати дуель»
+- **THEN** «Не вдалося завантажити категорію» is shown and the duel does not start
+
+### Requirement: Photo load failure
+If a photo fails to load during the game, the photo frame SHALL show «Фото не завантажилось» instead of a broken image, and the game SHALL continue normally.
+
+#### Scenario: Broken photo
+- **WHEN** the current photo's file cannot be loaded
+- **THEN** the frame shows «Фото не завантажилось» and the host can still judge or pass

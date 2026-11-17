@@ -340,3 +340,15 @@
   font-size: 18px;
   color: var(--text-muted);
 }
+
+.photo-frame__failed {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 32px;
+  color: var(--frozen-text);
+}

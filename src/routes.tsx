@@ -1,9 +1,9 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { GameFlow } from './features/play/GameFlow'
-import { createMockCategorySource } from './features/play/mockCategorySource'
+import { createCategorySource } from './features/play/categorySource'
 import { LazyAdminApp } from './features/admin/LazyAdminApp'
 
-const categorySource = createMockCategorySource()
+const categorySource = createCategorySource()
 
 export const routes = [
   { path: '/', element: <GameFlow source={categorySource} /> },

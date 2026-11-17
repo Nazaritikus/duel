@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { getRemainingMs, isLastSeconds, otherPlayer, type GameState } from '../../game'
 import type { PlayerNames, PlayPhoto } from './types'
 
@@ -26,16 +27,25 @@ export function PhotoFrame({ state, photo, names, now }: PhotoFrameProps) {
   // While paused the photo is not rendered at all, so it cannot be studied.
   const showPhoto = photo && phase.type !== 'paused'
   const src = feedback && photo?.answerSrc ? photo.answerSrc : photo?.src
+  // Remembering which src failed resets the state by itself when the photo changes.
+  const [failedSrc, setFailedSrc] = useState<string | null>(null)
+  const failed = src !== undefined && failedSrc === src
 
   return (
     <div className={`photo-frame photo-frame--${getRing(state, now)}`} data-testid="photo-frame">
-      {showPhoto && (
+      {showPhoto && !failed && (
         <img
           className="photo-frame__img"
           src={src}
           alt={feedback ? photo.answer : 'Фото з категорії'}
           data-testid="photo"
+          onError={() => setFailedSrc(src ?? null)}
         />
+      )}
+      {showPhoto && failed && (
+        <div className="photo-frame__failed" role="status">
+          Фото не завантажилось
+        </div>
       )}
 
       {feedback && photo && (

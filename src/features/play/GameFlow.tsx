@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createGame } from '../../game'
 import { CountdownScreen } from './CountdownScreen'
 import { ExitConfirm } from './ExitConfirm'
+import { createImagePreloader, type ImagePreloader } from './imagePreloader'
+import { upcomingSources } from './preloadPlan'
 import { GameScreen } from './GameScreen'
 import { ResultScreen } from './ResultScreen'
 import { SetupScreen, type CategoryList } from './SetupScreen'
@@ -12,17 +15,45 @@ import { useHostHotkeys, type HostHotkey } from './useHostHotkeys'
 import './play.css'
 import './flow.css'
 
+/** Photos ahead of the current one to keep decoded (spec: game-ui / Preloading). */
+const PRELOAD_AHEAD = 3
+/** Photos decoded before the countdown, and how long the start may wait for them. */
+const START_PHOTOS = 3
+const START_PRELOAD_TIMEOUT_MS = 8000
+
+const noopPreloader: ImagePreloader = { preload: () => Promise.resolve() }
+
+/** jsdom has no image decoding; there (and in old browsers) preloading is skipped. */
+function defaultPreloader(): ImagePreloader {
+  return typeof HTMLImageElement !== 'undefined' && 'decode' in HTMLImageElement.prototype
+    ? createImagePreloader()
+    : noopPreloader
+}
+
+function preloadAll(preloader: ImagePreloader, sources: readonly string[]) {
+  return Promise.allSettled(sources.map((src) => preloader.preload(src)))
+}
+
 interface ActiveGameProps {
   category: PlayCategory
   setup: GameSetup
   seed: number
   clock: FrameClock
+  preloader: ImagePreloader
   onRematch: () => void
   onExit: () => void
 }
 
 /** One duel: countdown → game → result, plus the Esc exit confirmation. */
-function ActiveGame({ category, setup, seed, clock, onRematch, onExit }: ActiveGameProps) {
+function ActiveGame({
+  category,
+  setup,
+  seed,
+  clock,
+  preloader,
+  onRematch,
+  onExit,
+}: ActiveGameProps) {
   const names = useMemo(() => displayNames(setup), [setup])
   const photoIds = useMemo(() => category.photos.map((p) => p.id), [category])
   const photosById = useMemo(() => new Map(category.photos.map((p) => [p.id, p])), [category])
@@ -35,6 +66,12 @@ function ActiveGame({ category, setup, seed, clock, onRematch, onExit }: ActiveG
     [setup],
   )
   const { state, now, command } = useGame({ photoIds, seed, settings, clock })
+
+  const order = state.photoIds
+  const photoIndex = state.photoIndex
+  useEffect(() => {
+    void preloadAll(preloader, upcomingSources(order, photoIndex, photosById, PRELOAD_AHEAD))
+  }, [preloader, order, photoIndex, photosById])
   // null: closed; otherwise whether this dialog paused the game (and so must resume it).
   const [confirm, setConfirm] = useState<{ pausedByDialog: boolean } | null>(null)
   const { phase } = state
@@ -113,6 +150,7 @@ interface GameFlowProps {
   clock?: FrameClock
   storage?: Storage
   newSeed?: () => number
+  preloader?: ImagePreloader
 }
 
 const randomSeed = () => Math.floor(Math.random() * 2 ** 31)
@@ -123,7 +161,9 @@ export function GameFlow({
   clock = browserClock,
   storage,
   newSeed = randomSeed,
+  preloader: preloaderProp,
 }: GameFlowProps) {
+  const [preloader] = useState(() => preloaderProp ?? defaultPreloader())
   const [flow, setFlow] = useState<Flow>({ screen: 'setup' })
   const [lastSetup, setLastSetup] = useState<GameSetup>(() => loadSetup(storage))
   const [categories, setCategories] = useState<CategoryList>({ status: 'loading' })
@@ -149,9 +189,21 @@ export function GameFlow({
     setLastSetup(setup)
     saveSetup(setup, storage)
     source.loadCategory(setup.categoryId).then(
-      (category) => {
+      async (category) => {
+        // Decode the first photos of exactly the order this seed will produce.
+        const seed = newSeed()
+        const order = createGame({
+          photoIds: category.photos.map((p) => p.id),
+          now: 0,
+          seed,
+        }).photoIds
+        const byId = new Map(category.photos.map((p) => [p.id, p]))
+        await Promise.race([
+          preloadAll(preloader, upcomingSources(order, 0, byId, START_PHOTOS - 1)),
+          new Promise((resolve) => setTimeout(resolve, START_PRELOAD_TIMEOUT_MS)),
+        ])
         setStarting(false)
-        setFlow({ screen: 'game', setup, category, seed: newSeed() })
+        setFlow({ screen: 'game', setup, category, seed })
       },
       () => {
         setStarting(false)
@@ -187,6 +239,7 @@ export function GameFlow({
           setup={flow.setup}
           seed={flow.seed}
           clock={clock}
+          preloader={preloader}
           onRematch={rematch}
           onExit={backToSetup}
         />

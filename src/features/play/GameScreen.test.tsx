@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { gameReducer, type GameState, type HostActionType } from '../../game'
 import { startedGame } from '../../game/test-utils'
@@ -156,5 +156,20 @@ describe('GameScreen', () => {
     )
     expect(screen.queryByText('ПАУЗА')).not.toBeInTheDocument()
     expect(screen.getByTestId('photo')).toHaveAttribute('src', '/b.jpg')
+  })
+
+  it('replaces a photo that fails to load with a message and keeps the game going', () => {
+    const s = gameOn('b')
+    const { rerender } = show(s, 0)
+    fireEvent.error(screen.getByTestId('photo'))
+    expect(screen.queryByTestId('photo')).not.toBeInTheDocument()
+    expect(screen.getByText('Фото не завантажилось')).toBeInTheDocument()
+
+    // The next photo is tried again.
+    const next = { ...s, photoIds: ['a', ...s.photoIds.filter((id) => id !== 'a')] }
+    rerender(
+      <GameScreen state={next} now={0} category={category} photosById={photosById} names={names} />,
+    )
+    expect(screen.getByTestId('photo')).toHaveAttribute('src', '/a.jpg')
   })
 })
