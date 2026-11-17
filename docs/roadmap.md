@@ -8,7 +8,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | # | Phase (OpenSpec change) | Status | Result |
 |---|---|---|---|
 | 1 | `add-game-engine-core` | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out |
-| 2 | `complete-game-engine-rules` | ○ | Countdown, pause, shuffle, photos exhausted & draw, stats, time formatting |
+| 2 | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting |
 | 3 | `add-play-screen` | ○ | Playable game screen with hotkeys on mock data |
 | 4 | `add-game-flow-screens` | ○ | Setup → countdown → game → result → rematch. **Offline MVP** |
 | 5 | `add-supabase-foundation` | ○ | Schema, RLS, storage, types, seed, Vercel preview |
@@ -32,7 +32,29 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - API: `createGame(photoIds, now, settings?)`, `gameReducer(state, action)`, `getRemainingMs(state, player, now)`, `getCurrentPhotoId(state)`
 - Added requirement "Host input outside an active turn" to `game-engine`
 
-### 2. `complete-game-engine-rules`
+### 2. `complete-game-engine-rules` — ✔ archived as `2026-11-17-complete-game-engine-rules`
+- **Summary.** `src/game/` gained:
+  - countdown, pause/resume, a seeded shuffle;
+  - the photos-exhausted ending with a draw;
+  - per-player stats;
+  - `format.ts`.
+
+  There are 55 Vitest tests, and every `game-engine` scenario has one.
+- **API:**
+  - `createGame({ photoIds, now, seed, settings? })`, which starts in `countdown`;
+  - `gameReducer` with the new `pause` / `resume` actions;
+  - `getRemainingMs`, `getCurrentPhotoId`, `getCountdownSeconds`;
+  - `formatTime(ms, { tenths })`, `isLastSeconds`.
+
+  The `finished` phase has `winner: 0 | 1 | null` and `reason: 'timeout' | 'photos_exhausted'`; `state.stats` holds the per-player stats.
+- **Spec changes in `game-engine`:**
+  - the countdown is 3 s, and a random starter is fixed at creation;
+  - pause works during the countdown, and judgements are ignored while paused or counting down;
+  - the shuffle is reproducible per seed;
+  - photos exhausted is evaluated after the last feedback, so the penalty still applies, and a draw compares truncated tenths.
+- **Spec change in `game-ui`:** the timer truncates and never rounds up.
+
+**Original plan:**
 - `countdown` phase (3-2-1; first player = player 1 or random)
 - `pause` / `resume` from any active state; feedback timer suspended too
 - Seedable shuffle without repeats

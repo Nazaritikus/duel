@@ -4,11 +4,13 @@ import { createGame, gameReducer, getCurrentPhotoId, getRemainingMs, type GameSt
 describe('scripted full game', () => {
   it('plays turns until a time-out and reports the winner', () => {
     const photos = Array.from({ length: 50 }, (_, i) => `p${i}`)
-    let s: GameState = createGame(photos, 0, {
-      timePerPlayerMs: 10_000,
-      correctFeedbackMs: 2_000,
-      penaltyMs: 3_000,
+    let s: GameState = createGame({
+      photoIds: photos,
+      now: -3_000,
+      seed: 99,
+      settings: { timePerPlayerMs: 10_000, correctFeedbackMs: 2_000, penaltyMs: 3_000 },
     })
+    s = gameReducer(s, { type: 'tick', now: 0 }) // countdown -3.0 → 0, P1 starts at 0
 
     s = gameReducer(s, { type: 'correct', now: 2_000 }) // P1: 8.0 s left
     s = gameReducer(s, { type: 'tick', now: 4_000 }) // P2 starts at 4.0
@@ -20,12 +22,16 @@ describe('scripted full game', () => {
     s = gameReducer(s, { type: 'correct', now: 9_000 }) // P2: 5.0 s left
     s = gameReducer(s, { type: 'tick', now: 11_000 }) // P1 starts at 11.0
     s = gameReducer(s, { type: 'pass', now: 12_000 })
-    expect(getCurrentPhotoId(s)).toBe('p3')
+    expect(getCurrentPhotoId(s)).toBe(s.photoIds[3])
 
     s = gameReducer(s, { type: 'tick', now: 30_000 }) // P1 runs out at 19.0
     expect(s.phase).toEqual({ type: 'finished', winner: 1, reason: 'timeout', at: 19_000 })
+    expect(s.stats).toEqual([
+      { correct: 1, wrong: 0, pass: 1 },
+      { correct: 1, wrong: 1, pass: 0 },
+    ])
     expect(getRemainingMs(s, 0, 30_000)).toBe(0)
     expect(getRemainingMs(s, 1, 30_000)).toBe(5_000)
-    expect(getCurrentPhotoId(s)).toBe('p4')
+    expect(getCurrentPhotoId(s)).toBe(s.photoIds[4])
   })
 })
