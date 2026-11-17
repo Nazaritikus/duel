@@ -5,17 +5,17 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 
 **Status legend:** ✔ done · ▶ in progress · ○ next / not started
 
-| # | Phase (OpenSpec change) | Status | Result |
-|---|---|---|---|
-| 1 | `add-game-engine-core` | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out |
-| 2 | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting |
-| 3 | `add-play-screen` | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards |
-| 4 | `add-game-flow-screens` | ✔ 2026-11-18 | Full duel with rematch on `/` (setup → countdown → game → result), mock catalog. **Offline MVP** |
-| 5 | `add-supabase-foundation` | ✔ 2026-11-18 | Schema + RLS + private storage on local and cloud Supabase, policy tests, seed, types, Vercel preview |
-| 6 | `add-admin-categories` | ○ | Admin login, categories CRUD, publish validation |
-| 7 | `add-admin-photo-management` | ○ | Bulk upload, compression, answer photos, edit/delete, production deploy |
-| 8 | `connect-game-to-supabase` | ○ | Game on published categories with preloading |
-| 9 | `polish-host-experience` | ○ | Sounds, fullscreen, host cheat sheet, test game over a call |
+| #   | Phase (OpenSpec change)      | Status       | Result                                                                                                |
+| --- | ---------------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
+| 1   | `add-game-engine-core`       | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out                               |
+| 2   | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting                     |
+| 3   | `add-play-screen`            | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards                |
+| 4   | `add-game-flow-screens`      | ✔ 2026-11-18 | Full duel with rematch on `/` (setup → countdown → game → result), mock catalog. **Offline MVP**      |
+| 5   | `add-supabase-foundation`    | ✔ 2026-11-18 | Schema + RLS + private storage on local and cloud Supabase, policy tests, seed, types, Vercel preview |
+| 6   | `add-admin-categories`       | ✔ 2026-11-18 | Magic-link admin login with allowlist guard, categories list/editor, publish rule in UI and DB        |
+| 7   | `add-admin-photo-management` | ○            | Bulk upload, compression, answer photos, edit/delete, production deploy                               |
+| 8   | `connect-game-to-supabase`   | ○            | Game on published categories with preloading                                                          |
+| 9   | `polish-host-experience`     | ○            | Sounds, fullscreen, host cheat sheet, test game over a call                                           |
 
 ```
 1 ─► 2 ─► 3 ─► 4  (offline MVP)
@@ -28,11 +28,13 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 ## Phase details
 
 ### 1. `add-game-engine-core` — ✔ archived as `2026-11-17-add-game-engine-core`
+
 - `src/game/`: types, clock, reducer, public index; 18 Vitest tests
 - API: `createGame(photoIds, now, settings?)`, `gameReducer(state, action)`, `getRemainingMs(state, player, now)`, `getCurrentPhotoId(state)`
 - Added requirement "Host input outside an active turn" to `game-engine`
 
 ### 2. `complete-game-engine-rules` — ✔ archived as `2026-11-17-complete-game-engine-rules`
+
 - **Summary.** `src/game/` gained:
   - countdown, pause/resume, a seeded shuffle;
   - the photos-exhausted ending with a draw;
@@ -40,6 +42,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
   - `format.ts`.
 
   There are 55 Vitest tests, and every `game-engine` scenario has one.
+
 - **API:**
   - `createGame({ photoIds, now, seed, settings? })`, which starts in `countdown`;
   - `gameReducer` with the new `pause` / `resume` actions;
@@ -47,6 +50,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
   - `formatTime(ms, { tenths })`, `isLastSeconds`.
 
   The `finished` phase has `winner: 0 | 1 | null` and `reason: 'timeout' | 'photos_exhausted'`; `state.stats` holds the per-player stats.
+
 - **Spec changes in `game-engine`:**
   - the countdown is 3 s, and a random starter is fixed at creation;
   - pause works during the countdown, and judgements are ignored while paused or counting down;
@@ -55,6 +59,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - **Spec change in `game-ui`:** the timer truncates and never rounds up.
 
 **Original plan:**
+
 - `countdown` phase (3-2-1; first player = player 1 or random)
 - `pause` / `resume` from any active state; feedback timer suspended too
 - Seedable shuffle without repeats
@@ -65,6 +70,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Prompt: `/openspec-propose "complete game engine rules: countdown, pause, shuffle, photos exhausted and draw, stats, time formatting"`
 
 ### 3. `add-play-screen` — ✔ archived as `2026-11-17-add-play-screen`
+
 - **Summary.**
   - App shell: router (`/`, `/play`, `/admin/*` stub), design tokens, fonts.
   - `Stage`: 1440×810, scaled and letterboxed.
@@ -89,6 +95,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
   - "Наступний хід: <ім'я>" replaces the case-dependent copy.
 
 **Original plan:**
+
 - App shell: routing (`/`, `/play`, `/admin/*` stub), fonts, design tokens
 - 16:9 `Stage` scaled to the window
 - Game screen: photo (`object-fit: contain`), status bar, active / "Заморожено", last-10-s state
@@ -101,6 +108,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Prompt: `/openspec-propose "play screen: stage 16:9, photo, status bar, feedback states, host hotkeys, mock category"`
 
 ### 4. `add-game-flow-screens` — ✔ archived as `2026-11-18-add-game-flow-screens` — offline MVP
+
 - **Summary.**
   - `GameFlow` on `/`: setup → countdown → game → result → rematch / another category.
   - Setup screen: names, category search, 45/60/90 s, penalty 3/5 s, who starts, settings remembered in `localStorage`.
@@ -127,6 +135,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
   - the result kicker uses the winner's colour.
 
 **Original plan:**
+
 - Setup (names, category with search, 45/60/90 s, penalty 3/5 s, who starts, remembered settings), designed countdown screen, `Esc` exit with in-page confirmation
 - One flow on `/` (setup → countdown → game → result); `/play` and interim views removed; mock catalog of 3 categories behind a `CategorySource` interface
 - Result: winner / draw, reason, stats, "Реванш", "Інша категорія"
@@ -135,6 +144,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Prompt: `/openspec-propose "game flow: setup, countdown, result and rematch, esc exit"`
 
 ### 5. `add-supabase-foundation` — ✔ archived as `2026-11-18-add-supabase-foundation`
+
 - **Summary.**
   - 5 migrations: schema, triggers, `admins` + `private.is_admin()`, RLS, private bucket `photos`.
   - Applied to the local Docker stack and to the cloud project `Duel`; advisors are clean.
@@ -157,6 +167,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
   - Supabase CLI v3 needs `--remote` for cloud commands.
 
 **Original plan:**
+
 - Migrations `categories`, `photos` (`answer_storage_path`, `is_vertical`, `position`), indexes, `updated_at` trigger
 - RLS: anon reads published only; admin-only writes (admin = `admins` allowlist + `is_admin()`); private `photos` bucket with folder-based policies
 - Local Docker stack for dev and RLS tests (`npm run test:db`), cloud project for the preview; CLIs as devDependencies
@@ -164,13 +175,26 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Done when migrations apply to a clean DB, anon writes are rejected, preview deploy opens
 - Prompt: `/openspec-propose "supabase foundation: schema, RLS, storage bucket, generated types, seed, vercel deploy"`
 
-### 6. `add-admin-categories`
+### 6. `add-admin-categories` — ✔ archived as `2026-11-18-add-admin-categories`
+
+- **Summary.**
+  - Magic-link login on `/admin/login` (PKCE, links only for existing users, neutral confirmation); `RequireAdmin` guard with a no-access page for non-admins; admin shell with logout.
+  - Categories list per the artboard (count red below 60, status badge, «сьогодні»/short date, search) and an editor (name, hint, save, publish/unpublish with listed reasons, delete with in-page confirmation, stats line).
+  - Migration `publish_rule`: a trigger refuses the transition to `published` with < 60 photos or any empty answer for API roles; the service role (seed) is exempt. Pushed to the cloud; advisors clean.
+  - Admin is lazy-loaded (separate chunk). 167 unit tests, 26 DB tests.
+- **API (`src/features/admin`):** `AdminApi` interface + `createSupabaseAdminApi(client)`, `AdminApiContext`/`useAdminApi`, `AdminSessionProvider`/`useAdminSession`, `AdminRoutes({ api })`, `getPublishProblems`, `formatStats`, `formatUpdated`, `MIN_PHOTOS`; `getSupabase()` now uses the PKCE flow.
+- **Spec changes in `admin`:** "Admin authentication" gains guard scenarios; added "Magic link login", "Category list search", "Category editor fields", "Publish rule enforced by the database", "Publish reasons", "Delete category".
+- **Deviations from the artboards:** no «Налаштування» item; «Зберегти» instead of «Зберегти чернетку»; cover column is a placeholder until phase 7; the photo grid is phase 7.
+
+**Original plan:**
+
 - Magic-link login, `RequireAdmin` guard, logout
 - Categories list (photo count red below 60, status, date), create/edit, publish/unpublish with validation
 - Done when publishing is blocked by validation with a visible reason
 - Prompt: `/openspec-propose "admin auth and categories: magic link, guard, list, create/edit, publish validation"`
 
 ### 7. `add-admin-photo-management`
+
 - Drag & drop bulk upload with progress, client-side compression (~1600 px WebP), `is_vertical`
 - File name → answer; `<name>.answer.<ext>` → answer photo
 - Card grid: inline answer edit, add/replace/remove answer photo, "вертикальне" badge, delete with storage files
@@ -180,6 +204,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Prompt: `/openspec-propose "admin photo management: bulk upload, compression, filename answers, answer photos, edit and delete, production deploy"`
 
 ### 8. `connect-game-to-supabase`
+
 - Setup lists published categories from Supabase; photos loaded before start
 - Preload next 2–3 photos plus answer photos (`img.decode()`)
 - Loading / error states; mock mode kept behind an env flag
@@ -187,6 +212,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Prompt: `/openspec-propose "connect game to supabase: published categories, photo loading, preloading with answer photos"`
 
 ### 9. `polish-host-experience`
+
 - Sounds (correct, wrong, last-10-s ticking, game over) with mute
 - Fullscreen, hotkeys cheat sheet and host instructions on the setup screen
 - Test game over Zoom / Meet on the production deploy (deployed since phase 7)

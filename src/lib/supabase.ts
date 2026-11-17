@@ -21,7 +21,8 @@ export function getSupabase(
       'Supabase is not configured: set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env (see docs/setup.md)',
     )
   }
-  client = createClient<Database>(url, publishableKey)
+  // PKCE: the admin magic link returns with `?code=` (exchanged on load), not tokens in the URL.
+  client = createClient<Database>(url, publishableKey, { auth: { flowType: 'pkce' } })
   return client
 }
 

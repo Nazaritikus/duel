@@ -51,7 +51,17 @@ npm run db:grant-admin -- you@example.com              # local stack
 npm run db:grant-admin -- --remote editor@example.com  # cloud project
 ```
 
-The script creates the Auth user if it does not exist yet; that user then signs in with a magic link (phase 6).
+The script creates the Auth user if it does not exist yet; that user then signs in with a magic link.
+
+### Admin login
+
+- Open `/admin`, enter the email and press «Надіслати посилання». Open the link **in the same browser** (the PKCE flow keeps a verifier there).
+- Links are sent only to existing users, so only granted emails can sign in; the login form never creates accounts.
+- **Local:** emails go to Mailpit at http://127.0.0.1:54324. The dev server must point at the local stack. With the cloud URL in `.env`, override it for one run:
+  ```bash
+  VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_PUBLISHABLE_KEY=<PUBLISHABLE_KEY from `npx supabase status`> npm run dev
+  ```
+- **Cloud:** the Auth Site URL and redirect URLs must include the app's domain (set for production in phase 7). The built-in Supabase mailer sends only a few emails per hour; configure custom SMTP in the dashboard if that becomes a limit.
 
 ## 4. Vercel preview
 

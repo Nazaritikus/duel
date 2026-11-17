@@ -1,15 +1,6 @@
 /* Setup, countdown, result and exit screens.
    Measurements follow docs/design/source/{Main,Countdown,Result}.dc.html on the 1440×810 stage. */
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
 /* ---------- Buttons ---------- */
 .primary-button,
 .secondary-button,

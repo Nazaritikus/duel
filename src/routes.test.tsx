@@ -16,8 +16,12 @@ describe('routes', () => {
     vi.unstubAllGlobals()
   })
 
-  it('renders the admin stub', () => {
+  it('lazy-loads the admin, which explains missing Supabase config', async () => {
+    vi.stubEnv('VITE_SUPABASE_URL', '')
     render(<RouterProvider router={createMemoryRouter(routes, { initialEntries: ['/admin/x'] })} />)
-    expect(screen.getByRole('heading', { name: 'Адмінка — скоро' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('heading', { name: 'Supabase не налаштовано' }, { timeout: 5000 }),
+    ).toBeInTheDocument()
+    vi.unstubAllEnvs()
   })
 })
