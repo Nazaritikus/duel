@@ -74,7 +74,24 @@ npx vercel deploy                                           # prints the preview
 ```
 
 `vercel.json` rewrites every path to `index.html`, so `/admin/*` survives a reload.
-Production deploy comes in phase 7.
+
+## 5. Production
+
+- **URL:** https://duel-sand.vercel.app (game on `/`, admin on `/admin`). Production is public; previews stay behind Vercel auth.
+- **Env vars:** `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are set for Production as well as Preview. Never add `SUPABASE_SECRET_KEY` to Vercel.
+- **Deploy:** `npx vercel deploy --prod`.
+- **Supabase Auth URLs:** the cloud project's Site URL is the production URL. Its redirect URLs are `<prod>/admin`, `http://localhost:5173/admin` and `http://127.0.0.1:5173/admin`. They were set by pushing a minimal config that declares only these two settings. **Do not `supabase config push` the repo's `config.toml`:** it holds local-only values (MFA, confirmations, pooler) that differ from the cloud. To change the URLs again, push a config that declares only `[auth] site_url` and `additional_redirect_urls`:
+  ```bash
+  mkdir -p /tmp/auth-urls/supabase && cat > /tmp/auth-urls/supabase/config.toml <<'TOML'
+  project_id = "duel"
+  [auth]
+  site_url = "https://duel-sand.vercel.app"
+  additional_redirect_urls = ["https://duel-sand.vercel.app/admin", "http://localhost:5173/admin", "http://127.0.0.1:5173/admin"]
+  TOML
+  npx supabase config diff --remote=<project-ref> --workdir /tmp/auth-urls   # only "update" lines should be these two
+  npx supabase config push --remote=<project-ref> --workdir /tmp/auth-urls
+  ```
+- **Onboarding an editor:** run `npm run db:grant-admin -- --remote editor@example.com`. Then send them https://duel-sand.vercel.app/admin, where they request a magic link and open it in the same browser.
 
 ## Schema changes
 

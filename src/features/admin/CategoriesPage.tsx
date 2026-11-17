@@ -87,7 +87,11 @@ export function CategoriesPage() {
           {rows.map((c) => (
             <div key={c.id} className="admin-table__row" role="row">
               <span role="cell">
-                <span className="admin-ph admin-cover" aria-hidden="true" />
+                {c.coverUrl ? (
+                  <img className="admin-cover" src={c.coverUrl} alt="" loading="lazy" />
+                ) : (
+                  <span className="admin-ph admin-cover" aria-hidden="true" />
+                )}
               </span>
               <span role="cell">
                 <Link to={`/admin/categories/${c.id}`} className="admin-table__name">

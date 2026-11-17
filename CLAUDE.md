@@ -11,7 +11,7 @@ Browser game for two players in the TV "duel" format. A photo from a category is
 - Vite + React 19 + TypeScript, `react-router-dom`
 - Supabase: Postgres, Storage (private bucket `photos`), Auth (admins on an allowlist, magic link)
 - Vitest + Testing Library, oxlint, Prettier
-- Deploy: Vercel (CLI, project `duel`; previews are behind Vercel auth, production from phase 7)
+- Deploy: Vercel (CLI, project `duel`): production https://duel-sand.vercel.app (`npx vercel deploy --prod`), previews behind Vercel auth. Never `supabase config push` the repo config to the cloud (see `docs/setup.md` §5)
 - Supabase and Vercel CLIs are devDependencies: always `npx supabase …` / `npx vercel …`
 
 ## Commands

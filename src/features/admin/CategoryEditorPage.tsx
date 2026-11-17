@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { AdminApiError, useAdminApi, type AdminCategory } from './adminApi'
-import { formatStats, getPublishProblems } from './publishRules'
+import { AdminApiError, useAdminApi, type AdminCategory, type AdminPhoto } from './adminApi'
+import { PhotoCard } from './PhotoCard'
+import { PhotoUploader } from './PhotoUploader'
+import { formatStats, getPublishProblems, type CategoryStats } from './publishRules'
 import { StatusBadge } from './StatusBadge'
 
 const NAME_MAX = 60
@@ -15,6 +17,14 @@ function validateName(name: string): string | null {
 
 const message = (e: unknown, fallback: string) =>
   e instanceof AdminApiError ? e.message : fallback
+
+function statsOf(photos: readonly AdminPhoto[]): CategoryStats {
+  return {
+    photoCount: photos.length,
+    missingAnswers: photos.filter((p) => p.answer.trim() === '').length,
+    verticalCount: photos.filter((p) => p.isVertical).length,
+  }
+}
 
 type LoadState =
   | { status: 'loading' }
@@ -38,6 +48,8 @@ export function CategoryEditorPage() {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [photos, setPhotos] = useState<AdminPhoto[] | null>(null)
+  const [photosError, setPhotosError] = useState(false)
 
   const apply = useCallback((category: AdminCategory | null) => {
     if (!category) {
@@ -53,12 +65,26 @@ export function CategoryEditorPage() {
     if (id) apply(await api.getCategory(id))
   }, [api, apply, id])
 
+  const reloadPhotos = useCallback(async () => {
+    if (!id) return
+    try {
+      setPhotos(await api.listPhotos(id))
+      setPhotosError(false)
+    } catch {
+      setPhotosError(true)
+    }
+  }, [api, id])
+
   useEffect(() => {
     if (!id) return
     let cancelled = false
     api.getCategory(id).then(
       (category) => !cancelled && apply(category),
       () => !cancelled && setLoad({ status: 'error' }),
+    )
+    api.listPhotos(id).then(
+      (list) => !cancelled && setPhotos(list),
+      () => !cancelled && setPhotosError(true),
     )
     return () => {
       cancelled = true
@@ -82,7 +108,9 @@ export function CategoryEditorPage() {
   }
 
   const category = load.category
-  const problems = category ? getPublishProblems(category.stats) : []
+  // Photos loaded here are fresher than the category's stats (answers edited in place).
+  const stats = category ? (photos ? statsOf(photos) : category.stats) : null
+  const problems = stats ? getPublishProblems(stats) : []
 
   async function run(action: () => Promise<void>, fallback: string) {
     setBusy(true)
@@ -141,7 +169,7 @@ export function CategoryEditorPage() {
             {category && (
               <>
                 <StatusBadge status={category.status} />
-                <span className="admin-muted admin-stats">{formatStats(category.stats)}</span>
+                <span className="admin-muted admin-stats">{formatStats(stats!)}</span>
               </>
             )}
             <button type="submit" className="admin-btn" disabled={busy}>
@@ -240,7 +268,37 @@ export function CategoryEditorPage() {
 
       {category ? (
         <section className="admin-photos" aria-label="Фото">
-          <p className="admin-empty">Завантаження і редагування фото з’явиться незабаром.</p>
+          <PhotoUploader
+            categoryId={category.id}
+            photos={photos ?? []}
+            onUploaded={() => void reloadPhotos()}
+          />
+          {photosError && (
+            <p className="admin-error" role="alert">
+              Не вдалося завантажити фото.{' '}
+              <button type="button" className="admin-link-btn" onClick={() => void reloadPhotos()}>
+                Спробувати ще раз
+              </button>
+            </p>
+          )}
+          {photos === null && !photosError && <p className="admin-muted">Завантаження фото…</p>}
+          {photos?.length === 0 && <p className="admin-empty">Ще немає жодного фото.</p>}
+          {photos && photos.length > 0 && (
+            <div className="admin-grid">
+              {photos.map((p) => (
+                <PhotoCard
+                  key={p.id}
+                  photo={p}
+                  onAnswerSaved={(photoId, answer) =>
+                    setPhotos((list) =>
+                      list ? list.map((x) => (x.id === photoId ? { ...x, answer } : x)) : list,
+                    )
+                  }
+                  onChanged={() => void reloadPhotos()}
+                />
+              ))}
+            </div>
+          )}
         </section>
       ) : (
         <p className="admin-note">Збережіть категорію, щоб додати фото.</p>
@@ -251,8 +309,8 @@ export function CategoryEditorPage() {
           {confirmDelete ? (
             <div className="admin-confirm" role="alertdialog" aria-labelledby="delete-title">
               <p id="delete-title">
-                Видалити категорію «{category.name}» і всі її фото ({category.stats.photoCount})? Це
-                не можна скасувати.
+                Видалити категорію «{category.name}» і всі її фото ({stats!.photoCount})? Це не
+                можна скасувати.
               </p>
               <div className="admin-confirm__actions">
                 <button

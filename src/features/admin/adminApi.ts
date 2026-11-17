@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { TypedSupabaseClient } from '../../lib/supabase'
 import type { CategoryStats } from './publishRules'
+import type { ProcessedImage } from './upload/image'
 
 export type CategoryStatus = 'draft' | 'published'
 
@@ -16,6 +17,29 @@ export interface AdminCategory {
   status: CategoryStatus
   updatedAt: string
   stats: CategoryStats
+  /** Signed URL of the first photo (lowest position); only filled by `listCategories`. */
+  coverUrl: string | null
+}
+
+export interface AdminPhoto {
+  id: string
+  categoryId: string
+  answer: string
+  isVertical: boolean
+  position: number
+  storagePath: string
+  answerStoragePath: string | null
+  /** Signed URLs (1 h). */
+  url: string | null
+  answerUrl: string | null
+}
+
+export interface NewPhoto {
+  categoryId: string
+  position: number
+  answer: string
+  image: ProcessedImage
+  answerImage: ProcessedImage | null
 }
 
 export interface CategoryFields {
@@ -38,6 +62,17 @@ export interface AdminApi {
   updateCategory(id: string, fields: CategoryFields): Promise<void>
   setStatus(id: string, status: CategoryStatus): Promise<void>
   deleteCategory(id: string): Promise<void>
+
+  listPhotos(categoryId: string): Promise<AdminPhoto[]>
+  addPhoto(photo: NewPhoto): Promise<void>
+  /** Adds or replaces the answer photo. */
+  attachAnswerPhoto(
+    photo: Pick<AdminPhoto, 'id' | 'categoryId' | 'answerStoragePath'>,
+    image: ProcessedImage,
+  ): Promise<void>
+  removeAnswerPhoto(photo: Pick<AdminPhoto, 'id' | 'answerStoragePath'>): Promise<void>
+  updateAnswer(photoId: string, answer: string): Promise<void>
+  deletePhoto(photo: Pick<AdminPhoto, 'id' | 'storagePath' | 'answerStoragePath'>): Promise<void>
 }
 
 /** An error whose message is safe to show to the admin (Ukrainian). */
@@ -53,6 +88,9 @@ export function useAdminApi(): AdminApi {
 
 const PHOTOS_BUCKET = 'photos'
 const LIST_PAGE = 1000
+const SIGNED_URL_TTL = 3600
+
+const contentType = (image: ProcessedImage) => (image.ext === 'webp' ? 'image/webp' : 'image/jpeg')
 
 interface CategoryRow {
   id: string
@@ -60,13 +98,31 @@ interface CategoryRow {
   hint: string | null
   status: CategoryStatus
   updated_at: string
-  photos: { answer: string; is_vertical: boolean }[]
+  photos: { answer: string; is_vertical: boolean; storage_path: string; position: number }[]
 }
 
-const categorySelect = 'id, name, hint, status, updated_at, photos(answer, is_vertical)'
+const categorySelect =
+  'id, name, hint, status, updated_at, photos(answer, is_vertical, storage_path, position)'
 
-function toCategory(row: CategoryRow): AdminCategory {
+function firstPhotoPath(row: CategoryRow): string | null {
+  let first: CategoryRow['photos'][number] | null = null
+  for (const p of row.photos) if (!first || p.position < first.position) first = p
+  return first?.storage_path ?? null
+}
+
+interface PhotoRow {
+  id: string
+  category_id: string
+  answer: string
+  is_vertical: boolean
+  position: number
+  storage_path: string
+  answer_storage_path: string | null
+}
+
+function toCategory(row: CategoryRow, coverUrl: string | null = null): AdminCategory {
   return {
+    coverUrl,
     id: row.id,
     name: row.name,
     hint: row.hint ?? '',
@@ -161,7 +217,9 @@ export function createSupabaseAdminApi(
         .select(categorySelect)
         .order('updated_at', { ascending: false })
       if (error) throw dataError(error, 'Не вдалося завантажити категорії.')
-      return (data as CategoryRow[]).map(toCategory)
+      const rows = data as CategoryRow[]
+      const covers = await signPaths(rows.map(firstPhotoPath))
+      return rows.map((row, i) => toCategory(row, covers[i]))
     },
 
     async getCategory(id) {
@@ -208,5 +266,115 @@ export function createSupabaseAdminApi(
       const { error } = await client.from('categories').delete().eq('id', id)
       if (error) throw dataError(error, 'Не вдалося видалити категорію.')
     },
+
+    async listPhotos(categoryId) {
+      const { data, error } = await client
+        .from('photos')
+        .select('id, category_id, answer, is_vertical, position, storage_path, answer_storage_path')
+        .eq('category_id', categoryId)
+        .order('position')
+      if (error) throw dataError(error, 'Не вдалося завантажити фото.')
+      const rows = data as PhotoRow[]
+      const urls = await signPaths(rows.flatMap((r) => [r.storage_path, r.answer_storage_path]))
+      return rows.map((r, i) => ({
+        id: r.id,
+        categoryId: r.category_id,
+        answer: r.answer,
+        isVertical: r.is_vertical,
+        position: r.position,
+        storagePath: r.storage_path,
+        answerStoragePath: r.answer_storage_path,
+        url: urls[2 * i],
+        answerUrl: urls[2 * i + 1],
+      }))
+    },
+
+    async addPhoto({ categoryId, position, answer, image, answerImage }) {
+      const id = crypto.randomUUID()
+      const storagePath = `${categoryId}/${id}.${image.ext}`
+      const answerPath = answerImage ? `${categoryId}/${id}.answer.${answerImage.ext}` : null
+      const uploaded: string[] = []
+      const bucket = client.storage.from(PHOTOS_BUCKET)
+      try {
+        await upload(storagePath, image)
+        uploaded.push(storagePath)
+        if (answerPath && answerImage) {
+          await upload(answerPath, answerImage)
+          uploaded.push(answerPath)
+        }
+        const { error } = await client.from('photos').insert({
+          id,
+          category_id: categoryId,
+          storage_path: storagePath,
+          answer_storage_path: answerPath,
+          answer: answer.trim(),
+          is_vertical: image.height > image.width,
+          position,
+        })
+        if (error) throw dataError(error, 'Не вдалося зберегти фото.')
+      } catch (e) {
+        if (uploaded.length) await bucket.remove(uploaded)
+        throw e
+      }
+    },
+
+    async attachAnswerPhoto(photo, image) {
+      const path = `${photo.categoryId}/${photo.id}.answer.${image.ext}`
+      await upload(path, image, true)
+      const { error } = await client
+        .from('photos')
+        .update({ answer_storage_path: path })
+        .eq('id', photo.id)
+      if (error) throw dataError(error, 'Не вдалося зберегти фото відповіді.')
+      if (photo.answerStoragePath && photo.answerStoragePath !== path) {
+        await client.storage.from(PHOTOS_BUCKET).remove([photo.answerStoragePath])
+      }
+    },
+
+    async removeAnswerPhoto(photo) {
+      const { error } = await client
+        .from('photos')
+        .update({ answer_storage_path: null })
+        .eq('id', photo.id)
+      if (error) throw dataError(error, 'Не вдалося прибрати фото відповіді.')
+      if (photo.answerStoragePath) {
+        await client.storage.from(PHOTOS_BUCKET).remove([photo.answerStoragePath])
+      }
+    },
+
+    async updateAnswer(photoId, answer) {
+      const { error } = await client
+        .from('photos')
+        .update({ answer: answer.trim() })
+        .eq('id', photoId)
+      if (error) throw dataError(error, 'Не вдалося зберегти відповідь.')
+    },
+
+    async deletePhoto(photo) {
+      const paths = [photo.storagePath, photo.answerStoragePath].filter((p): p is string => !!p)
+      const { error: removeError } = await client.storage.from(PHOTOS_BUCKET).remove(paths)
+      if (removeError) throw new AdminApiError('Не вдалося видалити файли фото.')
+      const { error } = await client.from('photos').delete().eq('id', photo.id)
+      if (error) throw dataError(error, 'Не вдалося видалити фото.')
+    },
+  }
+
+  /** Signs storage paths in one request; null for missing paths or on failure. */
+  async function signPaths(paths: (string | null)[]): Promise<(string | null)[]> {
+    const present = paths.filter((p): p is string => !!p)
+    if (!present.length) return paths.map(() => null)
+    const { data, error } = await client.storage
+      .from(PHOTOS_BUCKET)
+      .createSignedUrls(present, SIGNED_URL_TTL)
+    if (error || !data) return paths.map(() => null)
+    const byPath = new Map(data.map((d) => [d.path, d.signedUrl ?? null]))
+    return paths.map((p) => (p ? (byPath.get(p) ?? null) : null))
+  }
+
+  async function upload(path: string, image: ProcessedImage, upsert = false) {
+    const { error } = await client.storage
+      .from(PHOTOS_BUCKET)
+      .upload(path, image.blob, { contentType: contentType(image), upsert })
+    if (error) throw new AdminApiError('Не вдалося завантажити файл у сховище.')
   }
 }

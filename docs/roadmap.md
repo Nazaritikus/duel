@@ -5,17 +5,17 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 
 **Status legend:** ✔ done · ▶ in progress · ○ next / not started
 
-| #   | Phase (OpenSpec change)      | Status       | Result                                                                                                |
-| --- | ---------------------------- | ------------ | ----------------------------------------------------------------------------------------------------- |
-| 1   | `add-game-engine-core`       | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out                               |
-| 2   | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting                     |
-| 3   | `add-play-screen`            | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards                |
-| 4   | `add-game-flow-screens`      | ✔ 2026-11-18 | Full duel with rematch on `/` (setup → countdown → game → result), mock catalog. **Offline MVP**      |
-| 5   | `add-supabase-foundation`    | ✔ 2026-11-18 | Schema + RLS + private storage on local and cloud Supabase, policy tests, seed, types, Vercel preview |
-| 6   | `add-admin-categories`       | ✔ 2026-11-18 | Magic-link admin login with allowlist guard, categories list/editor, publish rule in UI and DB        |
-| 7   | `add-admin-photo-management` | ○            | Bulk upload, compression, answer photos, edit/delete, production deploy                               |
-| 8   | `connect-game-to-supabase`   | ○            | Game on published categories with preloading                                                          |
-| 9   | `polish-host-experience`     | ○            | Sounds, fullscreen, host cheat sheet, test game over a call                                           |
+| #   | Phase (OpenSpec change)      | Status       | Result                                                                                                                       |
+| --- | ---------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `add-game-engine-core`       | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out                                                      |
+| 2   | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting                                            |
+| 3   | `add-play-screen`            | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards                                       |
+| 4   | `add-game-flow-screens`      | ✔ 2026-11-18 | Full duel with rematch on `/` (setup → countdown → game → result), mock catalog. **Offline MVP**                             |
+| 5   | `add-supabase-foundation`    | ✔ 2026-11-18 | Schema + RLS + private storage on local and cloud Supabase, policy tests, seed, types, Vercel preview                        |
+| 6   | `add-admin-categories`       | ✔ 2026-11-18 | Magic-link admin login with allowlist guard, categories list/editor, publish rule in UI and DB                               |
+| 7   | `add-admin-photo-management` | ✔ 2026-11-18 | Bulk upload (WebP ≤1600 px, answers from file names), photo grid editing, covers, production on https://duel-sand.vercel.app |
+| 8   | `connect-game-to-supabase`   | ○            | Game on published categories with preloading                                                                                 |
+| 9   | `polish-host-experience`     | ○            | Sounds, fullscreen, host cheat sheet, test game over a call                                                                  |
 
 ```
 1 ─► 2 ─► 3 ─► 4  (offline MVP)
@@ -193,7 +193,23 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Done when publishing is blocked by validation with a visible reason
 - Prompt: `/openspec-propose "admin auth and categories: magic link, guard, list, create/edit, publish validation"`
 
-### 7. `add-admin-photo-management`
+### 7. `add-admin-photo-management` — ✔ archived as `2026-11-18-add-admin-photo-management`
+
+- **Summary.**
+  - Bulk upload by drag & drop or file picker. The browser resizes each image to ≤ 1600 px and encodes it as WebP (JPEG as a fallback), applying EXIF orientation. The answer comes from the file name, and `.answer` files pair within the batch or with an existing photo by answer. Uploads run 3 at a time, with progress and a per-file error list.
+  - Photo grid per the artboard. The answer is edited inline and saved on blur or Enter; an empty answer gets a red border. Answer photos can be added, replaced or removed. Deleting a photo asks in the card, then removes its files and its row. Vertical photos get a badge, and stats and publish reasons update live.
+  - The categories list shows the first photo as the cover. No schema change.
+  - **Production:** https://duel-sand.vercel.app (Vercel Production env vars; the cloud Auth Site URL and redirect URLs were pushed alone through a minimal config).
+  - 191 unit tests, 27 DB tests; checked in the browser with real JPEGs.
+- **API (`src/features/admin`):**
+  - `AdminApi` gains `listPhotos`, `addPhoto`, `attachAnswerPhoto`, `removeAnswerPhoto`, `updateAnswer`, `deletePhoto`, and `AdminCategory.coverUrl`;
+  - `upload/fileNames` (`parseFileName`, `answerFromName`, `planUpload`), `upload/image` (`compressImage`, `targetSize`), `upload/queue` (`runQueue`);
+  - `ImageCompressorContext`.
+- **Spec changes in `admin`:** "Bulk photo upload" and "Photo editing" gain scenarios (answer formatting, attaching to existing photos, unmatched files, compression, progress, edit, empty marking, delete confirmation, replace); added "Category cover" and "Production access".
+- **Deviations from the artboards:** the drop zone sits full width above the grid instead of next to the name fields; the answer-photo slot gets «замінити» and «прибрати» icon buttons.
+- **Owner follow-up:** grant the content editor (and yourself) on the cloud with `npm run db:grant-admin -- --remote <email>`; the cloud has no users yet.
+
+**Original plan:**
 
 - Drag & drop bulk upload with progress, client-side compression (~1600 px WebP), `is_vertical`
 - File name → answer; `<name>.answer.<ext>` → answer photo
