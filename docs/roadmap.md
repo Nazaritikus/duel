@@ -15,7 +15,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | 6   | `add-admin-categories`       | ✔ 2026-11-18 | Magic-link admin login with allowlist guard, categories list/editor, publish rule in UI and DB                               |
 | 7   | `add-admin-photo-management` | ✔ 2026-11-18 | Bulk upload (WebP ≤1600 px, answers from file names), photo grid editing, covers, production on https://duel-sand.vercel.app |
 | 8   | `connect-game-to-supabase`   | ✔ 2026-11-18 | Game plays published Supabase categories; first photos decoded before start, next 3 preloaded; mock behind a flag            |
-| 9   | `polish-host-experience`     | ○            | Sounds, fullscreen, host cheat sheet, test game over a call                                                                  |
+| 9   | `polish-host-experience`     | ✔ 2026-11-18 | Web Audio sounds with mute (`M`), fullscreen (`F`), host help + cheat sheet; real-call test is an owner follow-up            |
 
 ```
 1 ─► 2 ─► 3 ─► 4  (offline MVP)
@@ -242,7 +242,22 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Done when a duel on a published category has no delay between photos
 - Prompt: `/openspec-propose "connect game to supabase: published categories, photo loading, preloading with answer photos"`
 
-### 9. `polish-host-experience`
+### 9. `polish-host-experience` — ✔ archived as `2026-11-18-polish-host-experience`
+
+- **Summary.**
+  - Sounds synthesised with Web Audio (no files): a chime for correct, a buzz for wrong/pass, a tick on each of the last 10 s of the active clock, and a fanfare at game over. Cues come from a pure `cuesBetween(prev, next)` over rendered frames, and audio unlocks on the first gesture.
+  - Mute: `M` or the setup toggle; remembered (`duel.sound.v1`); «Звук вимкнено» in the game header.
+  - Fullscreen: `F` or «На весь екран».
+  - «Як провести гру» panel (share the tab with audio, keys) and a hotkeys cheat sheet, also on the pause overlay.
+  - Production redeployed. 226 unit tests, 30 DB tests.
+- **API (`src/features/play`):**
+  - `sound/` (`cuesBetween`, `createSoundEngine`, `CUE_NOTES`, `loadMuted` / `saveMuted`);
+  - `useFullscreen`, `appHotkeyFor` / `useAppHotkeys`, `HotkeyList`, `HostHelp`;
+  - the `GameFlow` `soundEngine` prop.
+- **Spec changes in `game-ui`:** "Host hotkeys" adds `F` / `M`; "Pause overlay" shows the cheat sheet; added "Sound effects", "Mute", "Fullscreen", "Host help".
+- **Not done by the agent:** listening to the sounds and a real test game over Zoom / Meet. Both are owner follow-ups (task 3.2 left open).
+
+**Original plan:**
 
 - Sounds (correct, wrong, last-10-s ticking, game over) with mute
 - Fullscreen, hotkeys cheat sheet and host instructions on the setup screen

@@ -352,3 +352,14 @@
   font-size: 32px;
   color: var(--frozen-text);
 }
+
+.game-header__muted {
+  margin-left: auto;
+  margin-right: 24px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--surface-wrong);
+  color: var(--wrong-text);
+  font-size: 14px;
+  font-weight: 600;
+}

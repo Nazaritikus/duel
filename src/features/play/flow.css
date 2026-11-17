@@ -545,3 +545,143 @@ kbd {
   display: flex;
   gap: 16px;
 }
+
+/* ---------- Host tools: sound, fullscreen, help (phase 9) ---------- */
+
+.setup__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.setup__tools {
+  display: flex;
+  gap: 10px;
+}
+
+.tool-button {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tool-button:hover {
+  border-color: var(--text-muted);
+}
+
+.tool-button:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 3px;
+}
+
+.host-help {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(11, 13, 18, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.host-help__panel {
+  width: 1040px;
+  max-height: 700px;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 36px 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.host-help__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.host-help__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 32px;
+}
+
+.host-help__body {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.host-help__steps {
+  margin: 0;
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 28px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  border-bottom-width: 3px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.hotkeys {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 17px;
+}
+
+.hotkeys__row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: center;
+  gap: 12px;
+}
+
+.hotkeys dt {
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.hotkeys dd {
+  margin: 0;
+}
+
+.hotkeys--compact {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 40px;
+  row-gap: 8px;
+  margin-top: 12px;
+  font-size: 16px;
+}
+
+.hotkeys--compact .hotkeys__row {
+  grid-template-columns: 120px 1fr;
+}

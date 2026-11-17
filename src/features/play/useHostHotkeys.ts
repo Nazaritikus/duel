@@ -48,3 +48,31 @@ export function useHostHotkeys(onHotkey: (hotkey: HostHotkey) => void, enabled =
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [enabled])
 }
+
+export type AppHotkey = 'fullscreen' | 'mute'
+
+const APP_KEY_MAP: Record<string, AppHotkey> = { KeyF: 'fullscreen', KeyM: 'mute' }
+
+/** `F` / `M` work on every screen; same guards as the game keys (never while typing). */
+export function appHotkeyFor(event: KeyboardEvent): AppHotkey | null {
+  if (event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return null
+  if (isEditable(event.target)) return null
+  return APP_KEY_MAP[event.code] ?? null
+}
+
+export function useAppHotkeys(onHotkey: (hotkey: AppHotkey) => void) {
+  const handler = useRef(onHotkey)
+  useEffect(() => {
+    handler.current = onHotkey
+  })
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const hotkey = appHotkeyFor(event)
+      if (!hotkey) return
+      event.preventDefault()
+      handler.current(hotkey)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+}

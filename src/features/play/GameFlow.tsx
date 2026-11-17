@@ -1,9 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createGame } from '../../game'
 import { CountdownScreen } from './CountdownScreen'
 import { ExitConfirm } from './ExitConfirm'
 import { createImagePreloader, type ImagePreloader } from './imagePreloader'
 import { upcomingSources } from './preloadPlan'
+import { cuesBetween, type Frame } from './sound/cues'
+import { loadMuted, saveMuted } from './sound/muteStorage'
+import { defaultSoundEngine, type SoundEngine } from './sound/synth'
+import { useFullscreen } from './useFullscreen'
 import { GameScreen } from './GameScreen'
 import { ResultScreen } from './ResultScreen'
 import { SetupScreen, type CategoryList } from './SetupScreen'
@@ -11,7 +15,7 @@ import { displayNames, loadSetup, saveSetup, type GameSetup } from './setupStora
 import { Stage } from './Stage'
 import type { CategorySource, PlayCategory } from './types'
 import { browserClock, useGame, type FrameClock } from './useGame'
-import { useHostHotkeys, type HostHotkey } from './useHostHotkeys'
+import { useAppHotkeys, useHostHotkeys, type HostHotkey } from './useHostHotkeys'
 import './play.css'
 import './flow.css'
 
@@ -34,12 +38,24 @@ function preloadAll(preloader: ImagePreloader, sources: readonly string[]) {
   return Promise.allSettled(sources.map((src) => preloader.preload(src)))
 }
 
+/** Plays the cues for each rendered frame; the previous frame advances even while muted. */
+function useGameSounds(frame: Frame, engine: SoundEngine, muted: boolean) {
+  const prev = useRef<Frame | null>(null)
+  useEffect(() => {
+    const cues = cuesBetween(prev.current, frame)
+    prev.current = frame
+    if (!muted) for (const cue of cues) engine.play(cue)
+  }, [frame, engine, muted])
+}
+
 interface ActiveGameProps {
   category: PlayCategory
   setup: GameSetup
   seed: number
   clock: FrameClock
   preloader: ImagePreloader
+  sound: SoundEngine
+  muted: boolean
   onRematch: () => void
   onExit: () => void
 }
@@ -51,6 +67,8 @@ function ActiveGame({
   seed,
   clock,
   preloader,
+  sound,
+  muted,
   onRematch,
   onExit,
 }: ActiveGameProps) {
@@ -66,6 +84,9 @@ function ActiveGame({
     [setup],
   )
   const { state, now, command } = useGame({ photoIds, seed, settings, clock })
+
+  const frame = useMemo(() => ({ state, now }), [state, now])
+  useGameSounds(frame, sound, muted)
 
   const order = state.photoIds
   const photoIndex = state.photoIndex
@@ -130,6 +151,7 @@ function ActiveGame({
         category={category}
         photosById={photosById}
         names={names}
+        muted={muted}
       />
     )
   }
@@ -151,6 +173,7 @@ interface GameFlowProps {
   storage?: Storage
   newSeed?: () => number
   preloader?: ImagePreloader
+  soundEngine?: SoundEngine
 }
 
 const randomSeed = () => Math.floor(Math.random() * 2 ** 31)
@@ -162,8 +185,32 @@ export function GameFlow({
   storage,
   newSeed = randomSeed,
   preloader: preloaderProp,
+  soundEngine,
 }: GameFlowProps) {
   const [preloader] = useState(() => preloaderProp ?? defaultPreloader())
+  const [sound] = useState(() => soundEngine ?? defaultSoundEngine())
+  const [muted, setMuted] = useState(() => loadMuted(storage))
+  const fullscreen = useFullscreen()
+
+  const toggleMute = useCallback(() => {
+    setMuted((m) => {
+      saveMuted(!m, storage)
+      return !m
+    })
+  }, [storage])
+
+  useAppHotkeys((hotkey) => (hotkey === 'mute' ? toggleMute() : fullscreen.toggle()))
+
+  // Browsers only start audio from a user gesture: unlock on the first click or key press.
+  useEffect(() => {
+    const unlock = () => sound.unlock()
+    window.addEventListener('pointerdown', unlock)
+    window.addEventListener('keydown', unlock)
+    return () => {
+      window.removeEventListener('pointerdown', unlock)
+      window.removeEventListener('keydown', unlock)
+    }
+  }, [sound])
   const [flow, setFlow] = useState<Flow>({ screen: 'setup' })
   const [lastSetup, setLastSetup] = useState<GameSetup>(() => loadSetup(storage))
   const [categories, setCategories] = useState<CategoryList>({ status: 'loading' })
@@ -231,6 +278,9 @@ export function GameFlow({
             setListAttempt((a) => a + 1)
           }}
           onStart={start}
+          muted={muted}
+          onToggleMute={toggleMute}
+          fullscreen={fullscreen}
         />
       ) : (
         <ActiveGame
@@ -240,6 +290,8 @@ export function GameFlow({
           seed={flow.seed}
           clock={clock}
           preloader={preloader}
+          sound={sound}
+          muted={muted}
           onRematch={rematch}
           onExit={backToSetup}
         />

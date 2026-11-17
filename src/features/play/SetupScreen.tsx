@@ -1,5 +1,6 @@
-import { useId, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useId, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { PlayerIndex } from '../../game'
+import { HostHelp } from './HostHelp'
 import {
   NAME_MAX_LENGTH,
   PENALTY_OPTIONS_MS,
@@ -7,6 +8,7 @@ import {
   type GameSetup,
 } from './setupStorage'
 import type { CategorySummary } from './types'
+import type { Fullscreen } from './useFullscreen'
 
 export type CategoryList =
   { status: 'loading' } | { status: 'error' } | { status: 'ready'; categories: CategorySummary[] }
@@ -19,6 +21,9 @@ interface SetupScreenProps {
   startError: boolean
   onRetryList: () => void
   onStart: (setup: GameSetup) => void
+  muted?: boolean
+  onToggleMute?: () => void
+  fullscreen?: Fullscreen
 }
 
 interface Option<T> {
@@ -120,7 +125,12 @@ export function SetupScreen({
   startError,
   onRetryList,
   onStart,
+  muted = false,
+  onToggleMute,
+  fullscreen,
 }: SetupScreenProps) {
+  const [helpOpen, setHelpOpen] = useState(false)
+  const closeHelp = useCallback(() => setHelpOpen(false), [])
   const [setup, setSetup] = useState<GameSetup>(initial)
   const [query, setQuery] = useState('')
   const update = (patch: Partial<GameSetup>) => setSetup((s) => ({ ...s, ...patch }))
@@ -147,9 +157,32 @@ export function SetupScreen({
   return (
     <form className="setup" onSubmit={submit}>
       <header className="setup__header">
-        <div className="setup__logo">DUEL</div>
-        <div className="setup__subtitle">Нова гра</div>
+        <div className="setup__brand">
+          <div className="setup__logo">DUEL</div>
+          <div className="setup__subtitle">Нова гра</div>
+        </div>
+        <div className="setup__tools">
+          {onToggleMute && (
+            <button
+              type="button"
+              className="tool-button"
+              aria-pressed={!muted}
+              onClick={onToggleMute}
+            >
+              Звук: {muted ? 'вимк.' : 'увімк.'}
+            </button>
+          )}
+          {fullscreen?.supported && (
+            <button type="button" className="tool-button" onClick={fullscreen.toggle}>
+              {fullscreen.active ? 'Вийти з повного екрана' : 'На весь екран'}
+            </button>
+          )}
+          <button type="button" className="tool-button" onClick={() => setHelpOpen(true)}>
+            Як провести гру
+          </button>
+        </div>
       </header>
+      {helpOpen && <HostHelp onClose={closeHelp} />}
 
       <div className="setup__players">
         {([0, 1] as const).map((p) => (
