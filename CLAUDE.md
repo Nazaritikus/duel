@@ -2,8 +2,9 @@
 
 Browser game for two players in the TV "duel" format. A photo from a category is shown, players answer in turns, and each has a chess-clock timer. The host shares this browser tab on a video call and judges answers with hotkeys. There is no realtime/multiplayer backend.
 
-- Design (source of truth for UI): https://claude.ai/artifact/GKXno9183U6HMvp5GGtsqi
-- Game rules and requirements: `openspec/specs/` (`game-engine`, `game-ui`, `admin`)
+- Design (source of truth for UI): https://claude.ai/artifact/GKXno9183U6HMvp5GGtsqi — snapshot of every screen with tokens in `docs/design/` (read `docs/design/README.md` and the matching `docs/design/source/*.dc.html` before building a screen)
+- Game rules and requirements: `openspec/specs/` (`game-engine`, `game-ui`, `admin`) — normative
+- Original product docs (Ukrainian, background only): `docs/product/requirements.md`, `docs/product/implementation-phases.md`
 - Phases and progress: `docs/roadmap.md`
 
 ## Stack

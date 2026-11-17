@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Duel — налаштування гри</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif}
+a{color:#F5A524}a:hover{color:#FFC861}
+input::placeholder{color:#8B93A1}
+</style>
+</helmet>
+<div style="width: 1440px; height: 810px; box-sizing: border-box; background: #0B0D12; color: #F3F4F6; padding: 48px 64px; display: flex; flex-direction: column; gap: 32px; font-family: Inter, system-ui, sans-serif">
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="font-family: Unbounded, sans-serif; font-weight: 800; font-size: 40px; letter-spacing: 0.04em">DUEL</div>
+    <div style="font-size: 15px; color: #9CA3AF">Нова гра</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <label for="p1" style="font-size: 14px; font-weight: 600; color: #F5A524; text-transform: uppercase; letter-spacing: 0.08em">Гравець 1</label>
+      <input id="p1" value="Назар" style="height: 64px; box-sizing: border-box; border-radius: 14px; border: 2px solid #F5A524; background: #151922; color: #F3F4F6; font-size: 24px; font-weight: 600; padding: 0 20px; font-family: Inter, sans-serif">
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <label for="p2" style="font-size: 14px; font-weight: 600; color: #3BC9F5; text-transform: uppercase; letter-spacing: 0.08em">Гравець 2</label>
+      <input id="p2" placeholder="Ім'я другого гравця" style="height: 64px; box-sizing: border-box; border-radius: 14px; border: 2px solid #2A3040; background: #151922; color: #F3F4F6; font-size: 24px; font-weight: 600; padding: 0 20px; font-family: Inter, sans-serif">
+    </div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <div style="font-size: 14px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.08em">Категорія</div>
+      <label for="cq" style="position: absolute; width: 1px; height: 1px; overflow: hidden">Пошук категорії</label>
+      <input id="cq" placeholder="Пошук категорії" style="width: 280px; height: 40px; box-sizing: border-box; border-radius: 10px; border: 1px solid #2A3040; background: #151922; color: #F3F4F6; font-size: 15px; padding: 0 14px; font-family: Inter, sans-serif">
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; max-height: 208px; overflow-y: auto">
+      <sc-for list="{{cats}}" as="c" hint-placeholder-count="8">
+        <button onClick="{{c.pick}}" style="{{c.style}}">
+          <span style="font-family: Unbounded, sans-serif; font-weight: 700; font-size: 18px">{{c.name}}</span>
+          <span style="font-size: 14px; color: #9CA3AF">{{c.count}} фото</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto">
+    <div style="display: flex; gap: 40px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 13px; color: #9CA3AF">Час на гравця</div>
+        <div style="display: flex; gap: 8px">
+          <span style="padding: 10px 16px; border-radius: 10px; background: #151922; color: #9CA3AF; font-weight: 600">45 с</span>
+          <span style="padding: 10px 16px; border-radius: 10px; background: #F3F4F6; color: #0B0D12; font-weight: 700">60 с</span>
+          <span style="padding: 10px 16px; border-radius: 10px; background: #151922; color: #9CA3AF; font-weight: 600">90 с</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 13px; color: #9CA3AF">Штраф за помилку</div>
+        <div style="display: flex; gap: 8px">
+          <span style="padding: 10px 16px; border-radius: 10px; background: #F3F4F6; color: #0B0D12; font-weight: 700">3 с</span>
+          <span style="padding: 10px 16px; border-radius: 10px; background: #151922; color: #9CA3AF; font-weight: 600">5 с</span>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <div style="font-size: 13px; color: #9CA3AF">Хто починає</div>
+        <div style="display: flex; gap: 8px">
+          <span style="padding: 10px 16px; border-radius: 10px; background: #151922; color: #F5A524; font-weight: 600">Гравець 1</span>
+          <span style="padding: 10px 16px; border-radius: 10px; background: #F3F4F6; color: #0B0D12; font-weight: 700">Випадково</span>
+        </div>
+      </div>
+    </div>
+    <a href="Game.dc.html" style="display: inline-flex; align-items: center; gap: 12px; height: 72px; padding: 0 40px; border-radius: 16px; background: #F5A524; color: #0B0D12; text-decoration: none; font-family: Unbounded, sans-serif; font-weight: 700; font-size: 22px">Почати дуель
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+    </a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":810}}'>
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { picked: 0 }; }
+  renderVals() {
+    const list = [['Автомобілі',72],['Прапори країн',60],['Футболісти',64],['Логотипи',80],['Тварини',61],['Кадри з фільмів',66],['Міста світу',70],['Їжа',62]];
+    const base = 'height: 96px; box-sizing: border-box; border-radius: 16px; padding: 18px 20px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; cursor: pointer; color: #F3F4F6; text-align: left; font-family: Inter, sans-serif; ';
+    return {
+      cats: list.map((c, i) => ({
+        name: c[0], count: c[1],
+        pick: () => this.setState({ picked: i }),
+        style: base + (this.state.picked === i ? 'background: #1D2230; border: 2px solid #F3F4F6' : 'background: #151922; border: 2px solid #151922')
+      }))
+    };
+  }
+}
+</script>
+</body>
+</html>

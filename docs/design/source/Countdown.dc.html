@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Duel — відлік перед ходом</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif}
+a{color:#F5A524}a:hover{color:#FFC861}
+.ph{background-color:#1A1F2B;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.03) 0 14px,transparent 14px 28px)}
+</style>
+</helmet>
+<div style="width: 1440px; height: 810px; box-sizing: border-box; background: #0B0D12; color: #F3F4F6; display: flex; flex-direction: column; font-family: Inter, system-ui, sans-serif">
+  <div style="height: 64px; padding: 0 40px; display: flex; justify-content: space-between; align-items: center">
+    <div style="font-family: Unbounded, sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.04em">DUEL</div>
+    <div style="font-size: 15px; color: #9CA3AF; font-weight: 500">Категорія: <span style="color: #F3F4F6; font-weight: 600">Автомобілі</span></div>
+  </div>
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px">
+    <div style="font-size: 18px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.16em">Починає</div>
+    <div style="font-family: Unbounded, sans-serif; font-weight: 800; font-size: 64px; color: #F5A524">Назар</div>
+    <div style="width: 220px; height: 220px; border-radius: 110px; border: 6px solid #F5A524; display: flex; justify-content: center; align-items: center; font-family: Unbounded, sans-serif; font-weight: 800; font-size: 120px; margin-top: 12px">3</div>
+  </div>
+  <div style="height: 150px; box-sizing: border-box; padding: 18px 40px 26px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+    <div style="border-radius: 18px; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; background: #10131A; border: 2px solid #232838">
+      <span style="font-family: Unbounded, sans-serif; font-weight: 700; font-size: 24px">Назар</span>
+      <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 44px; color: #C4C9D2">1:00</span>
+    </div>
+    <div style="border-radius: 18px; padding: 16px 22px; display: flex; justify-content: space-between; align-items: center; background: #10131A; border: 2px solid #232838">
+      <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 44px; color: #C4C9D2">1:00</span>
+      <span style="font-family: Unbounded, sans-serif; font-weight: 700; font-size: 24px">Олена</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":810}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

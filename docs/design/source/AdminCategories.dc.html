@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Duel адмінка — категорії</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif}
+a{color:#F5A524}a:hover{color:#FFC861}
+input::placeholder{color:#8B93A1}
+.ph{background-color:#232838;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.04) 0 6px,transparent 6px 12px)}
+</style>
+</helmet>
+<div style="width: 1440px; height: 900px; box-sizing: border-box; background: #0B0D12; color: #F3F4F6; display: flex; font-family: Inter, system-ui, sans-serif">
+  <nav style="width: 240px; box-sizing: border-box; border-right: 1px solid #1A1F2B; padding: 28px 16px; display: flex; flex-direction: column; gap: 6px">
+    <div style="font-family: Unbounded, sans-serif; font-weight: 800; font-size: 20px; padding: 0 12px 24px">DUEL <span style="font-family: Inter, sans-serif; font-weight: 500; font-size: 13px; color: #9CA3AF">admin</span></div>
+    <a href="AdminCategories.dc.html" style="display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 10px; background: #151922; color: #F3F4F6; text-decoration: none; font-weight: 600">Категорії</a>
+    <a href="#" style="display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 10px; color: #9CA3AF; text-decoration: none; font-weight: 500">Налаштування</a>
+    <a href="Main.dc.html" style="margin-top: auto; display: flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 10px; color: #F5A524; text-decoration: none; font-weight: 600">Відкрити гру →</a>
+  </nav>
+
+  <main style="flex: 1; min-width: 0; padding: 32px 40px; display: flex; flex-direction: column; gap: 24px">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <h1 style="margin: 0; font-family: Unbounded, sans-serif; font-weight: 700; font-size: 28px">Категорії</h1>
+      <div style="display: flex; gap: 12px">
+        <label for="q" style="position: absolute; width: 1px; height: 1px; overflow: hidden">Пошук</label>
+        <input id="q" placeholder="Пошук категорії" style="width: 260px; height: 44px; box-sizing: border-box; border-radius: 10px; border: 1px solid #2A3040; background: #151922; color: #F3F4F6; font-size: 15px; padding: 0 14px; font-family: Inter, sans-serif">
+        <a href="AdminCategoryEdit.dc.html" style="display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border-radius: 10px; background: #F5A524; color: #0B0D12; text-decoration: none; font-weight: 700">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>Нова категорія</a>
+      </div>
+    </div>
+
+    <div style="border: 1px solid #1A1F2B; border-radius: 14px; overflow: hidden">
+      <div style="display: grid; grid-template-columns: 72px 1fr 120px 160px 160px 120px; gap: 16px; align-items: center; padding: 12px 20px; background: #10131A; font-size: 12px; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.06em">
+        <span>Обкладинка</span><span>Назва</span><span>Фото</span><span>Статус</span><span>Оновлено</span><span></span>
+      </div>
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+        <div style="display: grid; grid-template-columns: 72px 1fr 120px 160px 160px 120px; gap: 16px; align-items: center; padding: 12px 20px; border-top: 1px solid #1A1F2B">
+          <div class="ph" style="width: 56px; height: 40px; border-radius: 8px"></div>
+          <a href="AdminCategoryEdit.dc.html" style="color: #F3F4F6; text-decoration: none; font-weight: 600; font-size: 16px">{{r.name}}</a>
+          <span style="font-size: 15px; color: {{r.countColor}}">{{r.count}}</span>
+          <span style="{{r.badge}}">{{r.status}}</span>
+          <span style="font-size: 14px; color: #9CA3AF">{{r.date}}</span>
+          <a href="AdminCategoryEdit.dc.html" style="justify-self: end; font-size: 14px; font-weight: 600">Редагувати</a>
+        </div>
+      </sc-for>
+    </div>
+    <div style="font-size: 13px; color: #9CA3AF">Категорія з’являється в грі, коли опублікована і має щонайменше 60 фото.</div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const rows = [['Автомобілі',72,1,'12 лист.'],['Прапори країн',60,1,'10 лист.'],['Футболісти',64,1,'9 лист.'],['Логотипи',80,1,'5 лист.'],['Тварини',61,1,'2 лист.'],['Кадри з фільмів',66,1,'28 жовт.'],['Музичні інструменти',12,0,'сьогодні']];
+    const b = 'justify-self: start; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 8px; ';
+    return { rows: rows.map(r => ({
+      name: r[0], count: r[1] + ' фото', date: r[3],
+      countColor: r[1] < 60 ? '#FF8B8E' : '#F3F4F6',
+      status: r[2] ? 'Опубліковано' : 'Чернетка',
+      badge: b + (r[2] ? 'background: #12301F; color: #4ADE80' : 'background: #232838; color: #9CA3AF')
+    })) };
+  }
+}
+</script>
+</body>
+</html>

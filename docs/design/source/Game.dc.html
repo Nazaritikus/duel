@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Duel — хід гравця</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif}
+a{color:#F5A524}a:hover{color:#FFC861}
+.ph{background-color:#1A1F2B;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,0.03) 0 14px,transparent 14px 28px)}
+</style>
+</helmet>
+<div style="position: relative; width: 1440px; height: 810px; box-sizing: border-box; background: #0B0D12; color: #F3F4F6; display: flex; flex-direction: column; font-family: Inter, system-ui, sans-serif">
+  <div style="height: 64px; padding: 0 40px; display: flex; justify-content: space-between; align-items: center">
+    <div style="font-family: Unbounded, sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.04em">DUEL</div>
+    <div style="font-size: 15px; color: #9CA3AF; font-weight: 500">Категорія: <span style="color: #F3F4F6; font-weight: 600">Автомобілі</span> · фото 7</div>
+  </div>
+
+  <div style="flex: 1; padding: 0 40px; display: flex; justify-content: center; align-items: center; min-height: 0">
+    <div class="ph" style="width: 1000px; height: 560px; border-radius: 24px; border: 3px solid {{ring}}; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; color: #8B93A1">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="9" cy="10" r="2"></circle><path d="M21 16l-5-5-9 9"></path></svg>
+      <div style="font-size: 18px; font-weight: 600">[ФОТО З КАТЕГОРІЇ]</div>
+      <div style="font-size: 14px">object-fit: contain — вертикальні фото по центру на темному фоні</div>
+    </div>
+  </div>
+
+  <div style="height: 150px; box-sizing: border-box; padding: 18px 40px 26px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+    <div style="{{a.box}}">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="width: 12px; height: 12px; border-radius: 6px; background: #F5A524"></span>
+          <span style="font-family: Unbounded, sans-serif; font-weight: 700; font-size: 24px">Назар</span>
+          <span style="{{a.tag}}">{{a.label}}</span>
+        </div>
+        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 44px; color: {{a.timeColor}}">{{a.time}}</span>
+      </div>
+      <div style="height: 8px; border-radius: 4px; background: #232838; overflow: hidden"><div style="width: {{a.pct}}; height: 8px; border-radius: 4px; background: {{a.bar}}"></div></div>
+    </div>
+    <div style="{{b.box}}">
+      <div style="display: flex; justify-content: space-between; align-items: center">
+        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 44px; color: {{b.timeColor}}">{{b.time}}</span>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span style="{{b.tag}}">{{b.label}}</span>
+          <span style="font-family: Unbounded, sans-serif; font-weight: 700; font-size: 24px">Олена</span>
+          <span style="width: 12px; height: 12px; border-radius: 6px; background: #3BC9F5"></span>
+        </div>
+      </div>
+      <div style="height: 8px; border-radius: 4px; background: #232838; overflow: hidden; display: flex; justify-content: flex-end"><div style="width: {{b.pct}}; height: 8px; border-radius: 4px; background: {{b.bar}}"></div></div>
+    </div>
+  </div>
+
+  <sc-if value="{{paused}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; background: rgba(11, 13, 18, 0.82); display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px">
+      <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="#F3F4F6" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 6v12M15 6v12"></path></svg>
+      <div style="font-family: Unbounded, sans-serif; font-weight: 800; font-size: 64px">ПАУЗА</div>
+      <div style="font-size: 18px; color: #9CA3AF">Годинники обох гравців зупинені · фото приховано</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"mode":{"editor":"enum","options":["turn","pause","last10"],"default":"turn"},"active":{"editor":"enum","options":["Гравець 1","Гравець 2"],"default":"Гравець 1"},"$preview":{"width":1440,"height":810}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const mode = this.props.mode ?? 'turn';
+    const first = (this.props.active ?? 'Гравець 1') === 'Гравець 1';
+    const last10 = mode === 'last10';
+    const side = (on, color, time, pct) => {
+      const hot = on && last10;
+      const c = hot ? '#E5484D' : color;
+      return {
+        box: 'border-radius: 18px; padding: 16px 22px; display: flex; flex-direction: column; justify-content: space-between; ' + (on ? 'background: ' + (hot ? '#1E1418' : '#151922') + '; border: 2px solid ' + c : 'background: #10131A; border: 2px solid #232838'),
+        tag: 'font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 10px; border-radius: 8px; ' + (on ? 'background: ' + c + '; color: #0B0D12' : 'background: #232838; color: #C4C9D2'),
+        label: on ? (hot ? 'Останні секунди' : 'Відповідає') : 'Заморожено',
+        timeColor: hot ? '#FF8B8E' : (on ? '#F3F4F6' : '#C4C9D2'),
+        bar: on ? c : '#4B5263',
+        time, pct
+      };
+    };
+    const aT = last10 && first ? '0:07.4' : '0:42';
+    const bT = last10 && !first ? '0:07.4' : '0:38';
+    return {
+      paused: mode === 'pause',
+      a: side(first && mode !== 'pause', '#F5A524', aT, last10 && first ? '12%' : '70%'),
+      b: side(!first && mode !== 'pause', '#3BC9F5', bT, last10 && !first ? '12%' : '63%'),
+      ring: last10 ? '#E5484D' : (first ? '#F5A524' : '#3BC9F5')
+    };
+  }
+}
+</script>
+</body>
+</html>

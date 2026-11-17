@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<title>Duel — переможець</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:Inter,system-ui,sans-serif}
+a{color:#F5A524}a:hover{color:#FFC861}
+</style>
+</helmet>
+<div style="width: 1440px; height: 810px; box-sizing: border-box; background: #0B0D12; color: #F3F4F6; padding: 48px 64px; display: flex; flex-direction: column; align-items: center; gap: 40px; font-family: Inter, system-ui, sans-serif">
+  <div style="align-self: stretch; display: flex; justify-content: space-between; align-items: center">
+    <div style="font-family: Unbounded, sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.04em">DUEL</div>
+    <div style="font-size: 15px; color: #9CA3AF">Автомобілі · 3 хв 12 с</div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 24px">
+    <div style="font-size: 16px; font-weight: 700; color: #F5A524; text-transform: uppercase; letter-spacing: 0.16em">{{kicker}}</div>
+    <div style="font-family: Unbounded, sans-serif; font-weight: 800; font-size: 120px; line-height: 1; color: {{nameColor}}">{{headline}}</div>
+    <div style="font-size: 20px; color: #9CA3AF">{{reason}} · залишилось <span style="font-family: 'JetBrains Mono', monospace; color: #F3F4F6">0:14</span></div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; width: 880px">
+    <div style="background: #151922; border: 2px solid #F5A524; border-radius: 18px; padding: 22px 26px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-family: Unbounded, sans-serif; font-weight: 700; font-size: 22px">Назар</div>
+      <div style="display: flex; gap: 32px">
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 32px; font-weight: 700; color: #4ADE80">14</span><span style="font-size: 13px; color: #9CA3AF">правильно</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 32px; font-weight: 700; color: #FF8B8E">3</span><span style="font-size: 13px; color: #9CA3AF">помилки</span></div>
+      </div>
+    </div>
+    <div style="background: #10131A; border: 2px solid #1A1F2B; border-radius: 18px; padding: 22px 26px; display: flex; flex-direction: column; gap: 14px">
+      <div style="font-family: Unbounded, sans-serif; font-weight: 700; font-size: 22px; color: #9CA3AF">Олена</div>
+      <div style="display: flex; gap: 32px">
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 32px; font-weight: 700; color: #4ADE80">11</span><span style="font-size: 13px; color: #9CA3AF">правильно</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 32px; font-weight: 700; color: #FF8B8E">5</span><span style="font-size: 13px; color: #9CA3AF">помилок</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 16px; margin-top: auto">
+    <a href="Main.dc.html" style="display: inline-flex; align-items: center; height: 60px; padding: 0 32px; border-radius: 14px; background: #151922; color: #F3F4F6; text-decoration: none; font-weight: 600; font-size: 18px">Інша категорія</a>
+    <a href="Game.dc.html" style="display: inline-flex; align-items: center; height: 60px; padding: 0 32px; border-radius: 14px; background: #F5A524; color: #0B0D12; text-decoration: none; font-family: Unbounded, sans-serif; font-weight: 700; font-size: 18px">Реванш</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"reason":{"editor":"enum","options":["Час вичерпано","Фото закінчились","Нічия"],"default":"Час вичерпано"},"$preview":{"width":1440,"height":810}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const r = this.props.reason ?? 'Час вичерпано';
+    if (r === 'Нічия') return { kicker: 'Фото закінчились', headline: 'Нічия', nameColor: '#F3F4F6', reason: 'Однаковий час у обох' };
+    return { kicker: 'Переможець', headline: 'Назар', nameColor: '#F5A524', reason: r === 'Фото закінчились' ? 'Фото закінчились · у Назара більше часу' : 'Час суперника вичерпано' };
+  }
+}
+</script>
+</body>
+</html>
