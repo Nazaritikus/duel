@@ -96,9 +96,9 @@
   - table and search with a reload;
   - progress bar;
   - SVG drop rejected (if the admin UI lets one through compression at all — expected: compression turns any image into WebP, so check it at the API level in the DB test).
-- [ ] 6.3 Cloud:
+- [x] 6.3 Cloud:
   - `npx supabase db push --remote`, then check advisors;
   - run `npm run db:storage-orphans -- --remote` as a dry run only and report the result; do not `--apply` on the cloud without the owner.
-- [ ] 6.4 Docs and roadmap:
+- [x] 6.4 Docs and roadmap:
   - `docs/setup.md` (env precedence, the orphans script) and the CLAUDE.md commands;
   - roadmap: phase 11 `polish-admin-and-storage` (▶ while in progress, ✔ with a summary after archiving).

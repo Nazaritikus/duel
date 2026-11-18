@@ -17,7 +17,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | 8   | `connect-game-to-supabase`   | ✔ 2026-11-18 | Game plays published Supabase categories; first photos decoded before start, next 3 preloaded; mock behind a flag             |
 | 9   | `polish-host-experience`     | ✔ 2026-11-18 | Web Audio sounds with mute (`M`), fullscreen (`F`), host help + cheat sheet; real-call test is an owner follow-up             |
 | 10  | `harden-host-and-a11y`       | ✔ 2026-11-18 | Keyboard-safe hotkeys, focus-contained overlays, native radio setup, stream text hygiene, transform timer bars, fetchpriority |
-| 11  | `polish-admin-and-storage`   | ▶            |                                                                                                                               |
+| 11  | `polish-admin-and-storage`   | ✔ 2026-11-18 | Leave guards, native confirm dialogs, URL search, no admin SVG, path CHECK, safe re-seed, orphan script                       |
 | 12  | `add-category-photo-order`   | ▶            |                                                                                                                               |
 | 13  | `lower-publish-minimum`      | ✔ 2026-11-18 | Publish minimum 50 photos (DB trigger + admin UI), deployed                                                                   |
 
@@ -292,9 +292,20 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - The timer bar uses `transform`.
 - Image `fetchpriority` is set.
 
-### 11. `polish-admin-and-storage` — ▶ proposed
+### 11. `polish-admin-and-storage` — ✔ archived as `2026-11-18-polish-admin-and-storage`
 
-From the 2026-11-18 review and UI audits.
+- **Summary.**
+  - Admin:
+    - `useLeaveGuard` (in-app `useBlocker` dialog + `beforeunload`) for unsaved name/hint edits and running uploads;
+    - `ConfirmDialog` on native `<dialog>` (focus on «Скасувати», `Esc`, focus return) for photo delete, answer-photo removal (the «×» that had removed three answer photos by mistake) and category delete; the photo delete button has a visible «Видалити» label;
+    - a refused save focuses the name field; native `<progress>` with one final announcement; categories as a native `<table>`; search in `?q=`; IME Enter guard; eager first thumbnails and covers.
+  - Database (migration `20261118104453_admin_storage_hardening`, pushed to the cloud): photo path CHECK, statement-level `touch_category` (a 60-row insert updates the category once), admin uploads raster-only (SVG rejected even as `x.webp`; the metadata check works, so no rasterising fallback), unused `categories_status_idx` dropped.
+  - Scripts: `.env.local` before `.env`; `localEnv` keeps the cause; the seed uploads in batches of 8, inserts new rows before deleting old ones and refuses duplicate names; new `db:storage-orphans` (cloud dry run: no orphans).
+  - Production redeployed. 255 unit tests, 39 DB tests.
+- **API (`src/features/admin`):** `ConfirmDialog`, `useLeaveGuard(active, message) → { dialog, allowNextNavigation }`, `PhotoUploader` `onRunningChange`, `PhotoCard` `eager`.
+- **Spec changes in `admin`:** "Bulk photo upload", "Photo editing", "Content storage layout", "Data integrity", "Category list search", "Category editor fields", "Delete category" modified; added "Leaving during an upload", "Photo delete confirmation", "Maintenance script environment", "Non-destructive re-seed", "Orphaned file cleanup".
+
+**Original plan** (from the 2026-11-18 review and UI audits):
 
 - Leave guards for unsaved edits and running uploads.
 - Native `<dialog>` delete confirmations.
