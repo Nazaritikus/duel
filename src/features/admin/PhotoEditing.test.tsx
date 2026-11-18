@@ -51,8 +51,31 @@ describe('bulk upload', () => {
     expect(card('Fiat 500')).toHaveTextContent('Окреме фото відповіді')
     expect(api.addPhoto).toHaveBeenCalledTimes(2)
     expect(api.addPhoto.mock.calls.map(([p]) => p.position).sort()).toEqual([0, 1])
-    expect(screen.getByText('Готово: оброблено 2 з 2')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Готово: оброблено 2 з 2')
+    expect(screen.getByRole('progressbar', { name: 'Готово: оброблено 2 з 2' })).toHaveAttribute(
+      'value',
+      '2',
+    )
     expect(screen.getByText('2 фото · 0 без відповіді · 1 вертикальне')).toBeInTheDocument()
+  })
+
+  it('asks before leaving while files are still uploading', async () => {
+    let finish!: () => void
+    const pending = new Promise<void>((resolve) => (finish = resolve))
+    const compress = vi.fn(async () => {
+      await pending
+      return fakeImage()
+    })
+    renderEditor(undefined, compress)
+    await screen.findByText('Ще немає жодного фото.')
+    drop([file('audi.jpg')])
+    await screen.findByRole('progressbar')
+    fireEvent.click(screen.getByRole('link', { name: '← Категорії' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Залишити сторінку?' })
+    expect(dialog).toHaveTextContent('Завантаження ще триває — решта файлів не завантажиться.')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Залишитися' }))
+    finish()
+    expect(await screen.findByRole('article', { name: 'Фото: Audi' })).toBeInTheDocument()
   })
 
   it('appends after the last position and lists failed files', async () => {
@@ -138,16 +161,36 @@ describe('photo card', () => {
   it('deletes only after confirmation', async () => {
     const { api } = renderEditor(withPhotos())
     const audi = await screen.findByRole('article', { name: 'Фото: Audi' })
-    fireEvent.click(within(audi).getByRole('button', { name: 'Видалити фото' }))
-    fireEvent.click(within(audi).getByRole('button', { name: 'Ні' }))
+    const trigger = within(audi).getByRole('button', { name: 'Видалити фото' })
+    expect(trigger).toHaveTextContent('Видалити')
+    trigger.focus()
+    fireEvent.click(trigger)
+    expect(screen.getByRole('button', { name: 'Скасувати' })).toHaveFocus()
+    fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
     expect(api.deletePhoto).not.toHaveBeenCalled()
+    expect(trigger).toHaveFocus()
 
-    fireEvent.click(within(audi).getByRole('button', { name: 'Видалити фото' }))
-    fireEvent.click(within(audi).getByRole('button', { name: 'Так' }))
+    fireEvent.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Видалити фото?' })
+    expect(dialog).toHaveTextContent('«Audi»: фото і фото відповіді буде видалено назавжди.')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Видалити' }))
     await waitFor(() =>
       expect(screen.queryByRole('article', { name: 'Фото: Audi' })).not.toBeInTheDocument(),
     )
     expect(api.deletePhoto).toHaveBeenCalledWith(expect.objectContaining({ id: 'p2' }))
+  })
+
+  it('asks before removing the answer photo; cancelling keeps it', async () => {
+    const { api } = renderEditor(withPhotos())
+    const audi = await screen.findByRole('article', { name: 'Фото: Audi' })
+    const remove = within(audi).getByRole('button', { name: 'Прибрати фото відповіді' })
+    remove.focus()
+    fireEvent.click(remove)
+    expect(screen.getByRole('dialog', { name: 'Прибрати фото відповіді?' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
+    expect(api.removeAnswerPhoto).not.toHaveBeenCalled()
+    expect(within(audi).getByText('Окреме фото відповіді')).toBeInTheDocument()
+    expect(remove).toHaveFocus()
   })
 
   it('removes and adds an answer photo', async () => {
@@ -155,6 +198,7 @@ describe('photo card', () => {
     const audi = await screen.findByRole('article', { name: 'Фото: Audi' })
     expect(audi).toHaveTextContent('вертикальне')
     fireEvent.click(within(audi).getByRole('button', { name: 'Прибрати фото відповіді' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Прибрати' }))
     await waitFor(() =>
       expect(within(card('Audi')).getByText('Відповідь на тому ж фото')).toBeInTheDocument(),
     )
@@ -167,6 +211,33 @@ describe('photo card', () => {
       expect(within(card('Audi')).getByText('Окреме фото відповіді')).toBeInTheDocument(),
     )
     expect(api.attachAnswerPhoto).toHaveBeenCalled()
+  })
+
+  it('does not save on the Enter that ends an IME composition', async () => {
+    const { api } = renderEditor(withPhotos())
+    const input = within(await screen.findByRole('article', { name: 'Фото: Audi' })).getByLabelText(
+      'Правильна відповідь',
+    )
+    input.focus()
+    fireEvent.change(input, { target: { value: 'アウディ' } })
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+    expect(input).toHaveFocus()
+    expect(api.updateAnswer).not.toHaveBeenCalled()
+  })
+
+  it('loads the first six thumbnails eagerly', async () => {
+    const many = createFakeAdminApi({
+      categories: [cars],
+      photos: Array.from({ length: 8 }, (_, i) =>
+        photo({ id: `p${i}`, categoryId: 'cars', answer: `A${i}`, position: i, url: `blob:${i}` }),
+      ),
+    })
+    renderEditor(many)
+    await screen.findByRole('article', { name: 'Фото: A7' })
+    const loading = screen
+      .getAllByRole('article')
+      .map((a) => a.querySelector('img')?.getAttribute('loading'))
+    expect(loading).toEqual([...Array(6).fill('eager'), 'lazy', 'lazy'])
   })
 })
 

@@ -1,4 +1,4 @@
-import { useRef, useState, type DragEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type DragEvent } from 'react'
 import { useAdminApi, type AdminPhoto } from './adminApi'
 import { ACCEPT_ATTRIBUTE, planUpload, type UploadError } from './upload/fileNames'
 import { useImageCompressor } from './upload/compressorContext'
@@ -19,10 +19,13 @@ export function PhotoUploader({
   categoryId,
   photos,
   onUploaded,
+  onRunningChange,
 }: {
   categoryId: string
   photos: readonly AdminPhoto[]
   onUploaded: () => void
+  /** The batch started or ended; the editor guards leaving the page while it runs. */
+  onRunningChange?: (running: boolean) => void
 }) {
   const api = useAdminApi()
   const compress = useImageCompressor()
@@ -76,6 +79,13 @@ export function PhotoUploader({
   }
 
   const running = progress?.running ?? false
+  const notifyRunning = useRef(onRunningChange)
+  useLayoutEffect(() => {
+    notifyRunning.current = onRunningChange
+  })
+  useEffect(() => {
+    notifyRunning.current?.(running)
+  }, [running])
 
   return (
     <div className="admin-upload">
@@ -136,17 +146,25 @@ export function PhotoUploader({
       </div>
 
       {progress && progress.total > 0 && (
-        <div className="admin-progress" role="status">
-          <div className="admin-progress__bar">
-            <div style={{ width: `${(progress.done / progress.total) * 100}%` }} />
-          </div>
-          <span>
+        <div className="admin-progress">
+          <label htmlFor={`upload-progress-${categoryId}`}>
             {running
               ? `Завантажено ${progress.done} з ${progress.total}`
               : `Готово: оброблено ${progress.done} з ${progress.total}`}
-          </span>
+          </label>
+          <progress
+            id={`upload-progress-${categoryId}`}
+            max={progress.total}
+            value={progress.done}
+          />
         </div>
       )}
+      {/* Announced once, when the batch ends — not after every file. */}
+      <p className="visually-hidden" role="status">
+        {progress && !running && progress.total > 0
+          ? `Готово: оброблено ${progress.done} з ${progress.total}`
+          : ''}
+      </p>
       {errors.length > 0 && (
         <div className="admin-problems" role="alert">
           <strong>Не завантажено ({errors.length}):</strong>

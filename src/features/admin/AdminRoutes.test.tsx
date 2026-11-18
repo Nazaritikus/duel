@@ -100,13 +100,12 @@ describe('login page', () => {
 describe('categories list', () => {
   it('lists categories with count, status and a red count below 50', async () => {
     renderAdmin('/admin', createFakeAdminApi({ categories: [draftCars, flags] }))
-    const carsRow = (await screen.findByRole('link', { name: 'Автомобілі' })).closest(
-      '[role="row"]',
-    )!
+    const carsRow = (await screen.findByRole('link', { name: 'Автомобілі' })).closest('tr')!
+    expect(screen.getByRole('table', { name: 'Категорії' })).toBeInTheDocument()
     expect(within(carsRow as HTMLElement).getByText('12 фото')).toHaveClass('admin-count--low')
     expect(within(carsRow as HTMLElement).getByText('Чернетка')).toBeInTheDocument()
     expect(within(carsRow as HTMLElement).getByText('сьогодні')).toBeInTheDocument()
-    const flagsRow = screen.getByRole('link', { name: 'Прапори країн' }).closest('[role="row"]')!
+    const flagsRow = screen.getByRole('link', { name: 'Прапори країн' }).closest('tr')!
     expect(within(flagsRow as HTMLElement).getByText('60 фото')).not.toHaveClass('admin-count--low')
     expect(within(flagsRow as HTMLElement).getByText('Опубліковано')).toBeInTheDocument()
   })
@@ -119,6 +118,32 @@ describe('categories list', () => {
     expect(screen.queryByRole('link', { name: 'Прапори країн' })).not.toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Пошук'), { target: { value: 'xyz' } })
     expect(screen.getByText('Нічого не знайдено')).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('keeps the search in the address', async () => {
+    const { router } = renderAdmin(
+      '/admin?q=%D0%B0%D0%B2%D1%82%D0%BE',
+      createFakeAdminApi({ categories: [draftCars, flags] }),
+    )
+    expect(await screen.findByRole('link', { name: 'Автомобілі' })).toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Пошук' })).toHaveValue('авто')
+    expect(screen.queryByRole('link', { name: 'Прапори країн' })).not.toBeInTheDocument()
+
+    const entries = router.state.historyAction
+    fireEvent.change(screen.getByLabelText('Пошук'), { target: { value: 'прапор' } })
+    expect(new URLSearchParams(router.state.location.search).get('q')).toBe('прапор')
+    expect(router.state.historyAction).toBe('REPLACE')
+    expect(entries).toBe('POP')
+    expect(screen.getByRole('link', { name: 'Прапори країн' })).toBeInTheDocument()
+  })
+
+  it('keeps every keystroke when typing fast', async () => {
+    renderAdmin('/admin', createFakeAdminApi({ categories: [draftCars, flags] }))
+    const search = await screen.findByRole('searchbox', { name: 'Пошук' })
+    for (const value of ['а', 'ав', 'авт']) fireEvent.change(search, { target: { value } })
+    expect(search).toHaveValue('авт')
+    expect(screen.queryByRole('link', { name: 'Прапори країн' })).not.toBeInTheDocument()
   })
 })
 
@@ -129,6 +154,43 @@ describe('category editor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
     expect(await screen.findByText('Введіть назву категорії')).toBeInTheDocument()
     expect(api.createCategory).not.toHaveBeenCalled()
+    expect(screen.getByLabelText('Назва категорії')).toHaveFocus()
+    expect(screen.getByLabelText('Назва категорії')).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('asks before leaving with an unsaved hint; «Залишитися» keeps the edit', async () => {
+    const { router } = renderAdmin(
+      '/admin/categories/cars',
+      createFakeAdminApi({ categories: [draftCars] }),
+    )
+    fireEvent.change(await screen.findByLabelText('Підказка для гравців'), {
+      target: { value: 'Нова підказка' },
+    })
+    fireEvent.click(screen.getByRole('link', { name: '← Категорії' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Залишити сторінку?' })
+    expect(dialog).toHaveTextContent('Незбережені зміни буде втрачено.')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Залишитися' }))
+    expect(router.state.location.pathname).toBe('/admin/categories/cars')
+    expect(screen.getByLabelText('Підказка для гравців')).toHaveValue('Нова підказка')
+
+    fireEvent.click(screen.getByRole('link', { name: '← Категорії' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Залишити сторінку' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/admin'))
+  })
+
+  it('leaves without asking after the edits are saved', async () => {
+    const { router } = renderAdmin(
+      '/admin/categories/cars',
+      createFakeAdminApi({ categories: [draftCars] }),
+    )
+    fireEvent.change(await screen.findByLabelText('Підказка для гравців'), {
+      target: { value: 'Нова підказка' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    expect(await screen.findByText('Збережено')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('link', { name: '← Категорії' }))
+    await waitFor(() => expect(router.state.location.pathname).toBe('/admin'))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('creates a draft and opens it', async () => {
@@ -196,18 +258,30 @@ describe('category editor', () => {
       '/admin/categories/cars',
       createFakeAdminApi({ categories: [draftCars] }),
     )
-    fireEvent.click(await screen.findByRole('button', { name: 'Видалити категорію' }))
+    const trigger = await screen.findByRole('button', { name: 'Видалити категорію' })
+    fireEvent.click(trigger)
+    expect(screen.getByRole('button', { name: 'Скасувати' })).toHaveFocus()
     fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
     expect(api.deleteCategory).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Видалити категорію' }))
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(
-      'Видалити категорію «Автомобілі» і всі її фото (12)?',
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Так, видалити' }))
+    fireEvent.click(trigger)
+    const dialog = screen.getByRole('dialog', { name: 'Видалити категорію «Автомобілі»?' })
+    expect(dialog).toHaveTextContent('Усі її фото (12) і файли буде видалено назавжди.')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Видалити' }))
     await waitFor(() => expect(router.state.location.pathname).toBe('/admin'))
     expect(api.deleteCategory).toHaveBeenCalledWith('cars')
     expect(await screen.findByText('Ще немає жодної категорії.')).toBeInTheDocument()
+  })
+
+  it('returns focus to «Видалити категорію» when the dialog is cancelled with Esc', async () => {
+    renderAdmin('/admin/categories/cars', createFakeAdminApi({ categories: [draftCars] }))
+    const trigger = await screen.findByRole('button', { name: 'Видалити категорію' })
+    trigger.focus()
+    fireEvent.click(trigger)
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(trigger).toHaveFocus()
   })
 
   it('reports a missing category', async () => {

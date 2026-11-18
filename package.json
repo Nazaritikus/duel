@@ -15,6 +15,7 @@
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types --lang=typescript > src/lib/database.types.ts && prettier --write src/lib/database.types.ts",
     "db:seed": "node scripts/seed-supabase.mjs",
+    "db:storage-orphans": "node scripts/storage-orphans.mjs",
     "db:grant-admin": "node scripts/grant-admin.mjs",
     "test:db": "vitest --run --config vitest.db.config.ts"
   },

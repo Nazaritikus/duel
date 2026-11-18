@@ -6,7 +6,7 @@ import {
   deleteCategory,
   deleteUser,
   service,
-  svg,
+  webp,
   type TestUser,
 } from './helpers'
 
@@ -189,12 +189,12 @@ describe('data integrity', () => {
 })
 
 describe('storage', () => {
-  const publishedPath = () => `${published.id}/file.svg`
-  const draftPath = () => `${draft.id}/file.svg`
+  const publishedPath = () => `${published.id}/file.webp`
+  const draftPath = () => `${draft.id}/file.webp`
 
   beforeAll(async () => {
     for (const path of [publishedPath(), draftPath()]) {
-      const { error } = await admin.client.storage.from('photos').upload(path, svg(path))
+      const { error } = await admin.client.storage.from('photos').upload(path, webp(path))
       if (error) throw error
     }
   })
@@ -219,11 +219,11 @@ describe('storage', () => {
   })
 
   it('rejects uploads from anonymous visitors and non-admins', async () => {
-    const a = await anon().storage.from('photos').upload(`${published.id}/anon.svg`, svg('x'))
+    const a = await anon().storage.from('photos').upload(`${published.id}/anon.webp`, webp('x'))
     expect(a.error).not.toBeNull()
     const p = await plain.client.storage
       .from('photos')
-      .upload(`${published.id}/plain.svg`, svg('x'))
+      .upload(`${published.id}/plain.webp`, webp('x'))
     expect(p.error).not.toBeNull()
   })
 

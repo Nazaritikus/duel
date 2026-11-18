@@ -28,7 +28,7 @@ The local stack needs no `.env`: scripts and tests read the local keys from `sup
    ```
    - `login` opens a browser and stores a token with access to your whole account.
    - For CI, use a scoped personal access token in `SUPABASE_ACCESS_TOKEN` instead.
-3. Put the keys into `.env` (or `.env.local`) in the repo root. Copy them from **Project Settings → API Keys**. Both files are git-ignored.
+3. Put the keys into `.env` (or `.env.local`) in the repo root. Copy them from **Project Settings → API Keys**. Both files are git-ignored. When both define a variable, `.env.local` wins, for the browser build (Vite) and for the `--remote` scripts alike.
    ```
    VITE_SUPABASE_URL=https://<project-ref>.supabase.co
    VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
@@ -39,8 +39,9 @@ The local stack needs no `.env`: scripts and tests read the local keys from `sup
 4. Apply the migrations and seed the cloud project:
    ```bash
    npx supabase db push --remote   # asks for confirmation before changing the hosted project
-   npm run db:seed -- --remote     # uses VITE_SUPABASE_URL + SUPABASE_SECRET_KEY from .env
+   npm run db:seed -- --remote     # uses VITE_SUPABASE_URL + SUPABASE_SECRET_KEY from .env.local / .env
    ```
+   - Re-running the seed refills a mock category without emptying it: new photos are uploaded and inserted first, then the old ones are removed. It stops if two categories share a seeded name.
 
 ## 3. Admins
 
@@ -102,3 +103,14 @@ npx vercel deploy                                           # prints the preview
   ```bash
   npm run db:reset && npm run db:types && npm run test:db
   ```
+- `npx supabase migration new <name>` waits for SQL on stdin when it is not a terminal; in scripts or agents add `</dev/null`.
+
+## Orphaned files
+
+Deleting a category or photo in the admin removes its files first. Files can still be left behind when rows are deleted directly in the database. List them, then delete them only after checking the list:
+
+```bash
+npm run db:storage-orphans                     # local, dry run
+npm run db:storage-orphans -- --remote         # cloud, dry run
+npm run db:storage-orphans -- --remote --apply # cloud, deletes the listed files
+```

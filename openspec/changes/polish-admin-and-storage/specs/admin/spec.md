@@ -32,7 +32,7 @@ The admin SHALL upload photos by drag & drop. A file name SHALL become the answe
 - **THEN** the admin is asked to confirm leaving; cancelling keeps the editor open and the upload running
 
 ### Requirement: Photo editing
-Each photo card SHALL allow inline editing of the single answer (no alternative answers), adding/replacing/removing the answer photo, and deleting the photo together with its storage files. Vertical photos SHALL carry a "вертикальне" badge. Deleting SHALL ask in an in-page modal dialog whose actions are «Видалити» and «Скасувати», with focus starting on «Скасувати» and returning to the card's delete button when cancelled. Pressing Enter while composing text with an input method SHALL NOT save the answer.
+Each photo card SHALL allow inline editing of the single answer (no alternative answers), adding/replacing/removing the answer photo, and deleting the photo together with its storage files. Vertical photos SHALL carry a "вертикальне" badge. Deleting SHALL ask in an in-page modal dialog whose actions are «Видалити» and «Скасувати», with focus starting on «Скасувати» and returning to the card's delete button when cancelled. Removing the answer photo SHALL also ask first («Прибрати» / «Скасувати»), and the delete button SHALL carry a visible label so the two are not confused. Pressing Enter while composing text with an input method SHALL NOT save the answer.
 
 #### Scenario: Delete photo
 - **WHEN** the admin deletes a photo that has an answer photo
@@ -53,6 +53,10 @@ Each photo card SHALL allow inline editing of the single answer (no alternative 
 #### Scenario: Cancel delete returns focus
 - **WHEN** the admin opens the delete dialog for a photo and presses `Esc`
 - **THEN** the dialog closes, nothing is deleted and focus is on that card's delete button
+
+#### Scenario: Remove answer photo needs confirmation
+- **WHEN** the admin presses «Прибрати фото відповіді» on a card and then «Скасувати»
+- **THEN** the answer photo is kept and focus is back on that button
 
 #### Scenario: Replace answer photo
 - **WHEN** the admin picks a new answer photo for a photo that already has one

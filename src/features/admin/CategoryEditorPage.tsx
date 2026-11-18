@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AdminApiError, useAdminApi, type AdminCategory, type AdminPhoto } from './adminApi'
+import { ConfirmDialog } from './ConfirmDialog'
 import { PhotoCard } from './PhotoCard'
 import { PhotoUploader } from './PhotoUploader'
 import { formatStats, getPublishProblems, type CategoryStats } from './publishRules'
 import { StatusBadge } from './StatusBadge'
+import { useLeaveGuard } from './useLeaveGuard'
 
 const NAME_MAX = 60
 
@@ -50,6 +52,18 @@ export function CategoryEditorPage() {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [photos, setPhotos] = useState<AdminPhoto[] | null>(null)
   const [photosError, setPhotosError] = useState(false)
+  // Last saved name and hint: the editor is dirty when the trimmed fields differ.
+  const [saved, setSaved] = useState({ name: '', hint: '' })
+  const [uploading, setUploading] = useState(false)
+  const nameRef = useRef<HTMLInputElement>(null)
+
+  const dirty = name.trim() !== saved.name.trim() || hint.trim() !== saved.hint.trim()
+  const leaveGuard = useLeaveGuard(
+    dirty || uploading,
+    uploading
+      ? 'Завантаження ще триває — решта файлів не завантажиться.'
+      : 'Незбережені зміни буде втрачено.',
+  )
 
   const apply = useCallback((category: AdminCategory | null) => {
     if (!category) {
@@ -59,6 +73,7 @@ export function CategoryEditorPage() {
     setLoad({ status: 'ready', category })
     setName(category.name)
     setHint(category.hint)
+    setSaved({ name: category.name, hint: category.hint })
   }, [])
 
   const reload = useCallback(async () => {
@@ -129,10 +144,15 @@ export function CategoryEditorPage() {
     event.preventDefault()
     const invalid = validateName(name)
     setNameError(invalid)
-    if (invalid) return
+    if (invalid) {
+      nameRef.current?.focus()
+      return
+    }
     await run(async () => {
       if (!category) {
         const created = await api.createCategory({ name, hint })
+        setSaved({ name, hint })
+        leaveGuard.allowNextNavigation() // the redirect to the new id is not "leaving"
         navigate(`/admin/categories/${created.id}`, { replace: true })
         return
       }
@@ -152,6 +172,7 @@ export function CategoryEditorPage() {
   const remove = () =>
     run(async () => {
       await api.deleteCategory(category!.id)
+      leaveGuard.allowNextNavigation()
       navigate('/admin', { replace: true })
     }, 'Не вдалося видалити категорію.')
 
@@ -237,9 +258,11 @@ export function CategoryEditorPage() {
               Назва категорії
             </label>
             <input
+              ref={nameRef}
               id="category-name"
               className={nameError ? 'admin-input admin-input--invalid' : 'admin-input'}
               value={name}
+              required
               maxLength={NAME_MAX + 20}
               aria-invalid={nameError !== null}
               aria-describedby={nameError ? 'category-name-error' : undefined}
@@ -272,6 +295,7 @@ export function CategoryEditorPage() {
             categoryId={category.id}
             photos={photos ?? []}
             onUploaded={() => void reloadPhotos()}
+            onRunningChange={setUploading}
           />
           {photosError && (
             <p className="admin-error" role="alert">
@@ -285,10 +309,11 @@ export function CategoryEditorPage() {
           {photos?.length === 0 && <p className="admin-empty">Ще немає жодного фото.</p>}
           {photos && photos.length > 0 && (
             <div className="admin-grid">
-              {photos.map((p) => (
+              {photos.map((p, index) => (
                 <PhotoCard
                   key={p.id}
                   photo={p}
+                  eager={index < 6}
                   onAnswerSaved={(photoId, answer) =>
                     setPhotos((list) =>
                       list ? list.map((x) => (x.id === photoId ? { ...x, answer } : x)) : list,
@@ -306,37 +331,34 @@ export function CategoryEditorPage() {
 
       {category && (
         <section className="admin-danger">
-          {confirmDelete ? (
-            <div className="admin-confirm" role="alertdialog" aria-labelledby="delete-title">
-              <p id="delete-title">
-                Видалити категорію «{category.name}» і всі її фото ({stats!.photoCount})? Це не
-                можна скасувати.
-              </p>
-              <div className="admin-confirm__actions">
-                <button
-                  type="button"
-                  className="admin-btn admin-btn--danger"
-                  disabled={busy}
-                  onClick={() => void remove()}
-                >
-                  Так, видалити
-                </button>
-                <button type="button" className="admin-btn" onClick={() => setConfirmDelete(false)}>
-                  Скасувати
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="admin-link-btn admin-link-btn--danger"
-              onClick={() => setConfirmDelete(true)}
+          <button
+            type="button"
+            className="admin-link-btn admin-link-btn--danger"
+            disabled={busy}
+            onClick={() => setConfirmDelete(true)}
+          >
+            Видалити категорію
+          </button>
+          {confirmDelete && (
+            <ConfirmDialog
+              title={`Видалити категорію «${category.name}»?`}
+              confirmLabel="Видалити"
+              danger
+              onConfirm={() => {
+                setConfirmDelete(false)
+                void remove()
+              }}
+              onCancel={() => setConfirmDelete(false)}
             >
-              Видалити категорію
-            </button>
+              <p>
+                Усі її фото ({stats!.photoCount}) і файли буде видалено назавжди. Це не можна
+                скасувати.
+              </p>
+            </ConfirmDialog>
           )}
         </section>
       )}
+      {leaveGuard.dialog}
     </div>
   )
 }

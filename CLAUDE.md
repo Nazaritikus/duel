@@ -28,10 +28,11 @@ npm run db:reset   # re-apply all migrations to the local DB
 npm run db:types   # regenerate src/lib/database.types.ts from the local DB
 npm run db:seed    # upload the mock catalog (add `-- --remote` for the cloud project)
 npm run db:grant-admin -- [--remote] <email>
+npm run db:storage-orphans -- [--remote] [--apply]  # list (or delete) files no photo row references
 npm run test:db    # RLS / storage policy tests against the local stack
 ```
 
-- Env vars live in `.env` / `.env.local`, see `.env.example`. Both files are git-ignored.
+- Env vars live in `.env` / `.env.local` (`.env.local` wins, for Vite and the scripts), see `.env.example`. Both files are git-ignored.
   - Browser: `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`.
   - Scripts only: `SUPABASE_SECRET_KEY`. Never `VITE_`-prefix it.
 - Local scripts and tests read the local stack's keys from `supabase status`.
@@ -78,7 +79,8 @@ supabase/migrations/
   - insert / update / delete only for admins;
   - the private `photos` bucket mirrors this per folder.
 - Storage paths: `<category_id>/<photo_id>.<ext>`, answer photo `<category_id>/<photo_id>.answer.<ext>`. Players get signed URLs.
-- `categories.updated_at` also moves when any of its photos changes (trigger).
+- `categories.updated_at` also moves when any of its photos changes (statement-level trigger: once per write).
+- `photos` paths must start with `<category_id>/` (CHECK). Admin clients may upload only WebP/JPEG/PNG/AVIF; SVG is for the seed (secret key) only.
 - Publish rule: a trigger refuses `status = 'published'` for API roles unless the category has ≥ 50 photos and no empty answers (the service role is exempt, so the seed works). The admin UI shows the same reasons (`getPublishProblems`).
 - Admin login: magic link (PKCE), only for users already on the allowlist; local emails land in Mailpit (http://127.0.0.1:54324).
 - Schema changes:
@@ -92,5 +94,6 @@ supabase/migrations/
 - Colours: background `#0B0D12`, surface `#151922`, player 1 `#F5A524`, player 2 `#3BC9F5`, correct `#30A46C`, wrong `#E5484D`, frozen text `#C4C9D2`.
 - Host hotkeys (`→`/`Enter`, `X`, `P`, `Space`, `Esc`, plus `F` fullscreen and `M` mute on every screen) are ignored while focus is in a text input. Enter/Space yield to a focused button, link, radio or checkbox.
 - Play overlays live inside the scaled stage, so they don't use native `<dialog>`: mark the content behind them `inert` and call `useRestoreFocus()` in the overlay. Setup choices are native radio groups.
+- Admin confirmations use `ConfirmDialog` (native `<dialog>`, focus on «Скасувати»), never `window.confirm`; pages with unsaved work use `useLeaveGuard`.
 - Sounds are synthesised with Web Audio (`src/features/play/sound/`); no audio files.
 - Game-logic changes come with Vitest tests.

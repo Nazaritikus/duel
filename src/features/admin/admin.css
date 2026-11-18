@@ -178,12 +178,15 @@
 
 .admin-input:focus-visible,
 .admin-btn:focus-visible,
-.admin-link-btn:focus-visible {
+.admin-link-btn:focus-visible,
+.admin-nav__item:focus-visible,
+.admin-table a:focus-visible {
   outline: 2px solid var(--player-1);
   outline-offset: 2px;
 }
 
-.admin-input--invalid {
+.admin-input--invalid,
+.admin-input:user-invalid {
   border-color: var(--wrong);
 }
 
@@ -328,21 +331,50 @@ a.admin-btn--primary:hover {
 /* ---------- Categories table ---------- */
 
 .admin-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
   border: 1px solid #1a1f2b;
   border-radius: 14px;
   overflow: hidden;
 }
 
-.admin-table__row {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr) 120px 160px 160px 120px;
-  gap: 16px;
-  align-items: center;
-  padding: 12px 20px;
+.admin-table th,
+.admin-table td {
+  padding: 12px 8px;
   border-top: 1px solid #1a1f2b;
+  text-align: left;
+  vertical-align: middle;
 }
 
-.admin-table__head {
+.admin-table th:first-child,
+.admin-table td:first-child {
+  padding-left: 20px;
+}
+
+.admin-table th:last-child,
+.admin-table td:last-child {
+  padding-right: 20px;
+}
+
+/* Column widths of the AdminCategories artboard (content + cell padding); the name takes
+   the rest. */
+.admin-table th:nth-child(1) {
+  width: 132px;
+}
+.admin-table th:nth-child(3) {
+  width: 136px;
+}
+.admin-table th:nth-child(4),
+.admin-table th:nth-child(5) {
+  width: 176px;
+}
+.admin-table th:nth-child(6) {
+  width: 148px;
+}
+
+.admin-table thead th {
   border-top: 0;
   background: var(--surface-frozen);
   font-size: 12px;
@@ -383,8 +415,8 @@ a.admin-btn--primary:hover {
   font-size: 14px;
 }
 
-.admin-table__edit {
-  justify-self: end;
+.admin-table .admin-table__edit {
+  text-align: right;
   font-size: 14px;
   font-weight: 600;
 }
@@ -392,7 +424,8 @@ a.admin-btn--primary:hover {
 .admin-table__empty {
   margin: 0;
   padding: 20px;
-  border-top: 1px solid #1a1f2b;
+  border: 1px solid #1a1f2b;
+  border-radius: 14px;
 }
 
 .admin-badge {
@@ -531,13 +564,27 @@ a.admin-btn--primary:hover {
   .admin-main {
     padding: 20px 16px;
   }
-  .admin-table__row {
-    grid-template-columns: minmax(0, 1fr) auto auto;
-  }
-  .admin-table__row > :nth-child(1),
-  .admin-table__row > :nth-child(5),
-  .admin-table__row > :nth-child(6) {
+  .admin-table th:nth-child(1),
+  .admin-table td:nth-child(1),
+  .admin-table th:nth-child(5),
+  .admin-table td:nth-child(5),
+  .admin-table th:nth-child(6),
+  .admin-table td:nth-child(6) {
     display: none;
+  }
+  .admin-table th:nth-child(2),
+  .admin-table td:nth-child(2) {
+    padding-left: 20px;
+  }
+  .admin-table th:nth-child(4),
+  .admin-table td:nth-child(4) {
+    padding-right: 20px;
+  }
+  .admin-table th:nth-child(3) {
+    width: 96px;
+  }
+  .admin-table th:nth-child(4) {
+    width: 140px;
   }
   .admin-fields {
     grid-template-columns: 1fr;
@@ -605,19 +652,32 @@ a.admin-btn--primary:hover {
   font-size: 14px;
 }
 
-.admin-progress__bar {
+.admin-progress label {
+  order: 1; /* the bar comes first visually, as in the design */
+}
+
+.admin-progress progress {
   flex: 1;
   max-width: 480px;
   height: 8px;
+  border: 0;
   border-radius: 4px;
   background: var(--border-panel);
   overflow: hidden;
+  appearance: none;
 }
 
-.admin-progress__bar > div {
-  height: 100%;
+.admin-progress progress::-webkit-progress-bar {
+  background: var(--border-panel);
+}
+
+.admin-progress progress::-webkit-progress-value {
   background: var(--player-1);
   transition: width 0.2s;
+}
+
+.admin-progress progress::-moz-progress-bar {
+  background: var(--player-1);
 }
 
 .admin-grid {
@@ -723,6 +783,15 @@ a.admin-btn--primary:hover {
   position: absolute;
   top: 6px;
   left: 6px;
+  width: auto;
+  padding: 0 8px;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-card__delete:hover {
+  color: var(--wrong-text);
 }
 
 .admin-card__add {
@@ -781,21 +850,6 @@ a.admin-btn--primary:hover {
   color: var(--wrong-text);
 }
 
-.admin-card__confirm {
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  background: var(--surface-wrong);
-}
-
-.admin-card__confirm > div {
-  display: flex;
-  gap: 8px;
-}
-
 .admin-card__error {
   margin: 0;
   padding: 0 10px 10px;
@@ -830,4 +884,41 @@ a.admin-btn--primary:hover {
     flex-direction: column;
     text-align: center;
   }
+}
+
+/* Native modal confirmation (ConfirmDialog). */
+.admin-dialog {
+  max-width: min(440px, calc(100vw - 32px));
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  overscroll-behavior: contain;
+}
+
+.admin-dialog::backdrop {
+  background: rgba(11, 13, 18, 0.72);
+}
+
+.admin-dialog__title {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.admin-dialog__body {
+  margin: 0 0 20px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.admin-dialog__body p {
+  margin: 0;
+}
+
+.admin-dialog__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }

@@ -1,7 +1,7 @@
 // Resolves the Supabase URL and keys for scripts and DB tests.
 // - local (default): read from `supabase status -o json` (the local Docker stack);
 // - remote (`--remote`): read VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY /
-//   SUPABASE_SECRET_KEY from .env / .env.local.
+//   SUPABASE_SECRET_KEY from .env.local, then .env (the first value wins, as in Vite).
 // Key values are never printed.
 import { execFileSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
@@ -24,8 +24,11 @@ export function localEnv() {
       stdio: ['ignore', 'pipe', 'pipe'],
     })
     status = JSON.parse(out.slice(out.indexOf('{')))
-  } catch {
-    throw new Error('Local Supabase is not running. Start Docker, then `npm run db:start`.')
+  } catch (cause) {
+    throw new Error(
+      `Local Supabase is not running. Start Docker, then \`npm run db:start\`. (${cause instanceof Error ? cause.message.split('\n')[0] : cause})`,
+      { cause },
+    )
   }
   const env = {
     url: pick(status, ['API_URL', 'api_url']),
@@ -41,7 +44,9 @@ export function localEnv() {
 }
 
 export function remoteEnv() {
-  for (const file of ['.env', '.env.local']) {
+  // loadEnvFile never overwrites a variable that is already set, so the first file wins:
+  // .env.local before .env, the same precedence as Vite.
+  for (const file of ['.env.local', '.env']) {
     const path = join(root, file)
     if (existsSync(path)) process.loadEnvFile(path)
   }

@@ -28,6 +28,7 @@ The fixes are cheap now, while the cloud holds only test data.
   - focus starts on «Скасувати»;
   - the buttons read «Видалити» / «Скасувати» instead of «Так» / «Ні»;
   - focus returns to the trigger.
+- **Answer-photo removal** (the «×» on the answer image) asks for confirmation too, and the photo delete button gets a visible label. Added after the owner removed three answer photos by mistake while trying to delete photos.
 - **Editor validation:** a failed save focuses the name field (`required`, invalid styling after interaction).
 - **Upload progress:** a native `<progress>`. Only the final «Готово…» line is announced to screen readers, not every file.
 - **Categories list:**

@@ -71,3 +71,6 @@ export const svg = (label: string) =>
   new Blob([`<svg xmlns="http://www.w3.org/2000/svg"><text>${label}</text></svg>`], {
     type: 'image/svg+xml',
   })
+
+/** A tiny file sent as WebP; storage checks the declared type, not the bytes. */
+export const webp = (label: string) => new Blob([`RIFF${label}WEBP`], { type: 'image/webp' })

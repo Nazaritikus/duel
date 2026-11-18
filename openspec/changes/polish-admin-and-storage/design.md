@@ -131,7 +131,7 @@ The per-row trigger is replaced by three statement triggers, one each for `inser
 
 ## Risks / Trade-offs
 
-- **The `metadata` check:** storage may not have filled `metadata` when the insert policy runs. The DB test exposes this, and the rasterising fallback (decision 7) is ready.
+- **The `metadata` check:** storage might not fill `metadata` before the insert policy runs. **Outcome (2026-11-18):** it does. The DB test that uploads SVG content as `x.webp` is rejected, while WebP passes, so the rasterising fallback was not needed. The "once per statement" touch was checked with `pg_stat_xact_user_tables`: a 60-row insert updates `categories` once.
 - **`beforeunload` prompt:** browsers show a generic text that we cannot localise. Acceptable.
 - **Offset positions after a re-seed:** the seeded positions start at about 13 instead of 0. Nothing depends on the absolute values (ordering only).
 - **Statement triggers with transition tables:** these need separate triggers per event when `UPDATE` involves `OLD`/`NEW` tables. Postgres 15+ supports this, and Supabase runs 15+/17.
