@@ -19,7 +19,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | 10  | `harden-host-and-a11y`       | ✔ 2026-11-18 | Keyboard-safe hotkeys, focus-contained overlays, native radio setup, stream text hygiene, transform timer bars, fetchpriority |
 | 11  | `polish-admin-and-storage`   | ▶            |                                                                                                                               |
 | 12  | `add-category-photo-order`   | ▶            |                                                                                                                               |
-| 13  | `lower-publish-minimum`      | ▶            |                                                                                                                               |
+| 13  | `lower-publish-minimum`      | ✔ 2026-11-18 | Publish minimum 50 photos (DB trigger + admin UI), deployed                                                                   |
 
 ```
 1 ─► 2 ─► 3 ─► 4  (offline MVP)
@@ -310,6 +310,7 @@ From the 2026-11-18 review and UI audits.
 - Admin: the setting in the editor, numbered photo cards, reordering by drag and drop and with keyboard buttons, atomic `reorder_photos` RPC.
 - Afterwards, switch «Марки авто» to the fixed order (already sorted from well-known to obscure).
 
-### 13. `lower-publish-minimum` — ▶ in progress
+### 13. `lower-publish-minimum` — ✔ archived as `2026-11-18-lower-publish-minimum`
 
-- The publish minimum drops from 60 to 50 photos (owner decision after curating «Марки авто» to 57). It is enforced in the DB trigger (forward migration) and in the admin UI (`MIN_PHOTOS`).
+- The publish minimum drops from 60 to 50 photos (owner decision after curating «Марки авто» to 57). It is enforced in the DB trigger (forward migration `20261118103802_lower_publish_minimum`, pushed to the cloud) and in the admin UI (`MIN_PHOTOS`); production redeployed.
+- Spec changes in `admin`: "Category management" and "Publish rule enforced by the database" use 50.

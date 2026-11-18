@@ -11,4 +11,4 @@
 
 - [x] 3.1 Run `npm test`, `npm run build`, `npm run lint` and `npx @fission-ai/openspec validate --all --strict`.
 - [x] 3.2 Update CLAUDE.md (publish rule ≥ 50) and the roadmap.
-- [ ] 3.3 Cloud: `npx supabase db push --remote` and `npx vercel deploy --prod` (after the owner approves the commit).
+- [x] 3.3 Cloud: `npx supabase db push --remote` and `npx vercel deploy --prod` (after the owner approves the commit).
