@@ -40,8 +40,8 @@ afterAll(async () => {
 })
 
 describe('publish rule', () => {
-  it('rejects an admin publish with 59 answered photos', async () => {
-    const category = await draftWith(59)
+  it('rejects an admin publish with 49 answered photos', async () => {
+    const category = await draftWith(49)
     const { error } = await admin.client
       .from('categories')
       .update({ status: 'published' })
@@ -51,8 +51,8 @@ describe('publish rule', () => {
     expect(await status(category.id)).toBe('draft')
   })
 
-  it('rejects 60 photos when one answer is blank', async () => {
-    const category = await draftWith(60, 1)
+  it('rejects 50 photos when one answer is blank', async () => {
+    const category = await draftWith(50, 1)
     const { error } = await admin.client
       .from('categories')
       .update({ status: 'published' })
@@ -68,8 +68,8 @@ describe('publish rule', () => {
     expect(error?.code).toBe('23514')
   })
 
-  it('publishes 60 answered photos', async () => {
-    const category = await draftWith(60)
+  it('publishes 50 answered photos', async () => {
+    const category = await draftWith(50)
     const { error } = await admin.client
       .from('categories')
       .update({ status: 'published' })

@@ -18,6 +18,8 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | 9   | `polish-host-experience`     | ✔ 2026-11-18 | Web Audio sounds with mute (`M`), fullscreen (`F`), host help + cheat sheet; real-call test is an owner follow-up             |
 | 10  | `harden-host-and-a11y`       | ✔ 2026-11-18 | Keyboard-safe hotkeys, focus-contained overlays, native radio setup, stream text hygiene, transform timer bars, fetchpriority |
 | 11  | `polish-admin-and-storage`   | ▶            |                                                                                                                               |
+| 12  | `add-category-photo-order`   | ▶            |                                                                                                                               |
+| 13  | `lower-publish-minimum`      | ▶            |                                                                                                                               |
 
 ```
 1 ─► 2 ─► 3 ─► 4  (offline MVP)
@@ -301,3 +303,13 @@ From the 2026-11-18 review and UI audits.
 - Photo path CHECK.
 - Statement-level `touch_category`.
 - Scripts: `.env.local` takes precedence, non-destructive re-seed, orphan cleanup script.
+
+### 12. `add-category-photo-order` — ▶ proposed
+
+- Per-category «Порядок фото»: «Випадковий» (default shuffle) or «Від легких до складних» (admin order; the rematch repeats it). This is a game-rule change in `game-engine` "Photo order".
+- Admin: the setting in the editor, numbered photo cards, reordering by drag and drop and with keyboard buttons, atomic `reorder_photos` RPC.
+- Afterwards, switch «Марки авто» to the fixed order (already sorted from well-known to obscure).
+
+### 13. `lower-publish-minimum` — ▶ in progress
+
+- The publish minimum drops from 60 to 50 photos (owner decision after curating «Марки авто» to 57). It is enforced in the DB trigger (forward migration) and in the admin UI (`MIN_PHOTOS`).

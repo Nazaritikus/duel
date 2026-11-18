@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { formatStats, formatUpdated, getPublishProblems, MIN_PHOTOS } from './publishRules'
 
 describe('getPublishProblems', () => {
-  it('requires at least 60 photos', () => {
-    expect(MIN_PHOTOS).toBe(60)
+  it('requires at least 50 photos', () => {
+    expect(MIN_PHOTOS).toBe(50)
     expect(getPublishProblems({ photoCount: 0, missingAnswers: 0 })).toEqual([
-      'Потрібно щонайменше 60 фото, зараз 0',
+      'Потрібно щонайменше 50 фото, зараз 0',
     ])
-    expect(getPublishProblems({ photoCount: 59, missingAnswers: 0 })).toHaveLength(1)
-    expect(getPublishProblems({ photoCount: 60, missingAnswers: 0 })).toEqual([])
+    expect(getPublishProblems({ photoCount: 49, missingAnswers: 0 })).toHaveLength(1)
+    expect(getPublishProblems({ photoCount: 50, missingAnswers: 0 })).toEqual([])
   })
 
   it('reports photos without an answer', () => {

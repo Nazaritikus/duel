@@ -1,7 +1,7 @@
 import { pluralUk } from '../play/pluralUk'
 
 /** Minimum photos a category needs to be published (also enforced by the DB trigger). */
-export const MIN_PHOTOS = 60
+export const MIN_PHOTOS = 50
 
 export interface CategoryStats {
   photoCount: number

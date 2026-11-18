@@ -98,7 +98,7 @@ describe('login page', () => {
 })
 
 describe('categories list', () => {
-  it('lists categories with count, status and a red count below 60', async () => {
+  it('lists categories with count, status and a red count below 50', async () => {
     renderAdmin('/admin', createFakeAdminApi({ categories: [draftCars, flags] }))
     const carsRow = (await screen.findByRole('link', { name: 'Автомобілі' })).closest(
       '[role="row"]',
@@ -149,7 +149,7 @@ describe('category editor', () => {
   it('lists every publish problem and disables publishing', async () => {
     renderAdmin('/admin/categories/cars', createFakeAdminApi({ categories: [draftCars] }))
     expect(await screen.findByText('12 фото · 3 без відповіді · 1 вертикальне')).toBeInTheDocument()
-    expect(screen.getByText('Потрібно щонайменше 60 фото, зараз 12')).toBeInTheDocument()
+    expect(screen.getByText('Потрібно щонайменше 50 фото, зараз 12')).toBeInTheDocument()
     expect(screen.getByText('3 фото без відповіді')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Опублікувати' })).toBeDisabled()
   })

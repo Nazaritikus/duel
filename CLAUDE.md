@@ -79,7 +79,7 @@ supabase/migrations/
   - the private `photos` bucket mirrors this per folder.
 - Storage paths: `<category_id>/<photo_id>.<ext>`, answer photo `<category_id>/<photo_id>.answer.<ext>`. Players get signed URLs.
 - `categories.updated_at` also moves when any of its photos changes (trigger).
-- Publish rule: a trigger refuses `status = 'published'` for API roles unless the category has ≥ 60 photos and no empty answers (the service role is exempt, so the seed works). The admin UI shows the same reasons (`getPublishProblems`).
+- Publish rule: a trigger refuses `status = 'published'` for API roles unless the category has ≥ 50 photos and no empty answers (the service role is exempt, so the seed works). The admin UI shows the same reasons (`getPublishProblems`).
 - Admin login: magic link (PKCE), only for users already on the allowlist; local emails land in Mailpit (http://127.0.0.1:54324).
 - Schema changes:
   1. Only through migrations: `npx supabase migration new <name>`.
