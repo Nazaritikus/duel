@@ -15,7 +15,9 @@ export function PlayerPanel({ state, player, name, now }: PlayerPanelProps) {
   const identity = (
     <div className="panel__identity">
       <span className="panel__dot" aria-hidden="true" />
-      <span className="panel__name">{name}</span>
+      <span className="panel__name" translate="no">
+        {name}
+      </span>
       <span className="panel__tag">{view.label}</span>
     </div>
   )
@@ -33,7 +35,7 @@ export function PlayerPanel({ state, player, name, now }: PlayerPanelProps) {
         {player === 0 ? time : identity}
       </div>
       <div className="panel__track">
-        <div className="panel__bar" style={{ width: `${view.pct * 100}%` }} />
+        <div className="panel__bar" style={{ transform: `scaleX(${view.pct})` }} />
       </div>
     </section>
   )

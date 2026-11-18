@@ -36,27 +36,40 @@ const categories = () => within(screen.getByRole('group', { name: 'Катего�
 describe('SetupScreen', () => {
   it('lists categories with photo counts', () => {
     setup()
-    expect(categories().getByRole('button', { name: /Цифри\s*10 фото/ })).toBeInTheDocument()
+    expect(categories().getByRole('radio', { name: /Цифри\s*10\s+фото/ })).toBeInTheDocument()
   })
 
   it('filters categories by search, case-insensitively', () => {
     setup()
     fireEvent.change(screen.getByLabelText('Пошук категорії'), { target: { value: 'ФІГУ' } })
-    expect(categories().getAllByRole('button')).toHaveLength(1)
+    expect(categories().getAllByRole('radio')).toHaveLength(1)
     expect(categories().getByText('Фігури та кольори')).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Пошук категорії'), { target: { value: 'xyz' } })
     expect(screen.getByText('Нічого не знайдено')).toBeInTheDocument()
   })
 
+  it('groups each setting as native radios named by its legend', () => {
+    setup()
+    const time = within(screen.getByRole('group', { name: 'Час на гравця' }))
+    const radios = time.getAllByRole('radio')
+    expect(radios).toHaveLength(3)
+    // One shared name: the browser moves through and selects them with the arrow keys.
+    expect(new Set(radios.map((r) => r.getAttribute('name'))).size).toBe(1)
+    fireEvent.click(time.getByRole('radio', { name: '90\u00a0с' }))
+    expect(time.getByRole('radio', { name: '90\u00a0с' })).toBeChecked()
+    expect(time.getByRole('radio', { name: '60\u00a0с' })).not.toBeChecked()
+    expect(screen.getByRole('textbox', { name: 'Гравець 1' })).toHaveAttribute(
+      'spellcheck',
+      'false',
+    )
+  })
+
   it('keeps start disabled until a category is picked', () => {
     const { onStart } = setup()
     expect(startButton()).toBeDisabled()
-    fireEvent.click(categories().getByRole('button', { name: /Стрілки/ }))
-    expect(categories().getByRole('button', { name: /Стрілки/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
+    fireEvent.click(categories().getByRole('radio', { name: /Стрілки/ }))
+    expect(categories().getByRole('radio', { name: /Стрілки/ })).toBeChecked()
     expect(startButton()).toBeEnabled()
     fireEvent.click(startButton())
     expect(onStart).toHaveBeenCalledWith(expect.objectContaining({ categoryId: 'arrows' }))
@@ -64,10 +77,12 @@ describe('SetupScreen', () => {
 
   it('submits the chosen names and settings; an empty name stays empty for the fallback', () => {
     const { onStart } = setup()
-    fireEvent.change(screen.getByLabelText('Гравець 1'), { target: { value: 'Назар' } })
-    fireEvent.click(categories().getByRole('button', { name: /Цифри/ }))
-    fireEvent.click(screen.getByRole('radio', { name: '90 с' }))
-    fireEvent.click(screen.getByRole('radio', { name: '5 с' }))
+    fireEvent.change(screen.getByRole('textbox', { name: 'Гравець 1' }), {
+      target: { value: 'Назар' },
+    })
+    fireEvent.click(categories().getByRole('radio', { name: /Цифри/ }))
+    fireEvent.click(screen.getByRole('radio', { name: '90\u00a0с' }))
+    fireEvent.click(screen.getByRole('radio', { name: '5\u00a0с' }))
     fireEvent.click(screen.getByRole('radio', { name: 'Випадково' }))
     fireEvent.click(startButton())
     expect(onStart).toHaveBeenCalledWith({
@@ -89,15 +104,12 @@ describe('SetupScreen', () => {
         firstPlayer: 'random',
       },
     })
-    expect(screen.getByLabelText('Гравець 1')).toHaveValue('Назар')
-    expect(screen.getByLabelText('Гравець 2')).toHaveValue('Олена')
-    expect(screen.getByRole('radio', { name: '90 с' })).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByRole('radio', { name: '5 с' })).toHaveAttribute('aria-checked', 'true')
-    expect(screen.getByRole('radio', { name: 'Випадково' })).toHaveAttribute('aria-checked', 'true')
-    expect(categories().getByRole('button', { name: /Цифри/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    )
+    expect(screen.getByRole('textbox', { name: 'Гравець 1' })).toHaveValue('Назар')
+    expect(screen.getByRole('textbox', { name: 'Гравець 2' })).toHaveValue('Олена')
+    expect(screen.getByRole('radio', { name: '90\u00a0с' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: '5\u00a0с' })).toBeChecked()
+    expect(screen.getByRole('radio', { name: 'Випадково' })).toBeChecked()
+    expect(categories().getByRole('radio', { name: /Цифри/ })).toBeChecked()
   })
 
   it('ignores a remembered category that is no longer listed', () => {
@@ -107,7 +119,7 @@ describe('SetupScreen', () => {
 
   it('limits names to 20 characters', () => {
     setup()
-    expect(screen.getByLabelText('Гравець 2')).toHaveAttribute('maxLength', '20')
+    expect(screen.getByRole('textbox', { name: 'Гравець 2' })).toHaveAttribute('maxLength', '20')
   })
 
   it('shows a list error with a retry', () => {

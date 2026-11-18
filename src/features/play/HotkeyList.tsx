@@ -1,3 +1,5 @@
+import { Kbd } from './Kbd'
+
 const HOTKEYS: readonly [keys: string[], action: string][] = [
   [['→', 'Enter'], 'Правильна відповідь'],
   [['X'], 'Помилка'],
@@ -18,7 +20,7 @@ export function HotkeyList({ compact = false }: { compact?: boolean }) {
             {keys.map((k, i) => (
               <span key={k}>
                 {i > 0 && ' / '}
-                <kbd>{k}</kbd>
+                <Kbd>{k}</Kbd>
               </span>
             ))}
           </dt>

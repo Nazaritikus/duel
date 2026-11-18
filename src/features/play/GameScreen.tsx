@@ -15,11 +15,13 @@ export function GameHeader({
 }) {
   return (
     <header className="game-header">
-      <div className="game-header__logo">DUEL</div>
+      <div className="game-header__logo" translate="no">
+        DUEL
+      </div>
       {muted && <div className="game-header__muted">Звук вимкнено</div>}
       <div className="game-header__info" data-testid="game-header-info">
-        Категорія: <span className="game-header__category">{categoryName}</span> · фото{' '}
-        {photoNumber}
+        Категорія: <span className="game-header__category">{categoryName}</span> ·{' '}
+        {`фото\u00a0${photoNumber}`}
       </div>
     </header>
   )

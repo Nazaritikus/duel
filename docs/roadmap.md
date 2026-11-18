@@ -5,17 +5,19 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 
 **Status legend:** ✔ done · ▶ in progress · ○ next / not started
 
-| #   | Phase (OpenSpec change)      | Status       | Result                                                                                                                       |
-| --- | ---------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `add-game-engine-core`       | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out                                                      |
-| 2   | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting                                            |
-| 3   | `add-play-screen`            | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards                                       |
-| 4   | `add-game-flow-screens`      | ✔ 2026-11-18 | Full duel with rematch on `/` (setup → countdown → game → result), mock catalog. **Offline MVP**                             |
-| 5   | `add-supabase-foundation`    | ✔ 2026-11-18 | Schema + RLS + private storage on local and cloud Supabase, policy tests, seed, types, Vercel preview                        |
-| 6   | `add-admin-categories`       | ✔ 2026-11-18 | Magic-link admin login with allowlist guard, categories list/editor, publish rule in UI and DB                               |
-| 7   | `add-admin-photo-management` | ✔ 2026-11-18 | Bulk upload (WebP ≤1600 px, answers from file names), photo grid editing, covers, production on https://duel-sand.vercel.app |
-| 8   | `connect-game-to-supabase`   | ✔ 2026-11-18 | Game plays published Supabase categories; first photos decoded before start, next 3 preloaded; mock behind a flag            |
-| 9   | `polish-host-experience`     | ✔ 2026-11-18 | Web Audio sounds with mute (`M`), fullscreen (`F`), host help + cheat sheet; real-call test is an owner follow-up            |
+| #   | Phase (OpenSpec change)      | Status       | Result                                                                                                                        |
+| --- | ---------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `add-game-engine-core`       | ✔ 2026-11-17 | Pure engine: chess clocks, turns, correct/wrong/pass feedback, time-out                                                       |
+| 2   | `complete-game-engine-rules` | ✔ 2026-11-17 | Countdown, pause, seeded shuffle, photos exhausted & draw, stats, time formatting                                             |
+| 3   | `add-play-screen`            | ✔ 2026-11-17 | `/play` playable end to end with the keyboard on mock data, matches the Game artboards                                        |
+| 4   | `add-game-flow-screens`      | ✔ 2026-11-18 | Full duel with rematch on `/` (setup → countdown → game → result), mock catalog. **Offline MVP**                              |
+| 5   | `add-supabase-foundation`    | ✔ 2026-11-18 | Schema + RLS + private storage on local and cloud Supabase, policy tests, seed, types, Vercel preview                         |
+| 6   | `add-admin-categories`       | ✔ 2026-11-18 | Magic-link admin login with allowlist guard, categories list/editor, publish rule in UI and DB                                |
+| 7   | `add-admin-photo-management` | ✔ 2026-11-18 | Bulk upload (WebP ≤1600 px, answers from file names), photo grid editing, covers, production on https://duel-sand.vercel.app  |
+| 8   | `connect-game-to-supabase`   | ✔ 2026-11-18 | Game plays published Supabase categories; first photos decoded before start, next 3 preloaded; mock behind a flag             |
+| 9   | `polish-host-experience`     | ✔ 2026-11-18 | Web Audio sounds with mute (`M`), fullscreen (`F`), host help + cheat sheet; real-call test is an owner follow-up             |
+| 10  | `harden-host-and-a11y`       | ✔ 2026-11-18 | Keyboard-safe hotkeys, focus-contained overlays, native radio setup, stream text hygiene, transform timer bars, fetchpriority |
+| 11  | `polish-admin-and-storage`   | ▶            |                                                                                                                               |
 
 ```
 1 ─► 2 ─► 3 ─► 4  (offline MVP)
@@ -264,3 +266,38 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Test game over Zoom / Meet on the production deploy (deployed since phase 7)
 - Done when a real test game over a video call has been played
 - Prompt: `/openspec-propose "polish host experience: sounds, fullscreen, hotkeys cheat sheet, host instructions"`
+
+### 10. `harden-host-and-a11y` — ✔ archived as `2026-11-18-harden-host-and-a11y`
+
+- **Summary.**
+  - Hotkeys: Enter/NumpadEnter/Space go to a focused button, link, radio or checkbox; only text entry silences the other keys (`F`/`M` work on radios). Keyboard-only play is unchanged: «Вийти» is focused in the exit dialog and «Реванш» on the result screen.
+  - Exit confirm and «Як провести гру» make the content behind them `inert` and return focus to where it was on close.
+  - Setup time, penalty, first player and the category grid are native radio groups (`fieldset`/`legend`, arrow keys), same look.
+  - Stream hygiene: `color-scheme: dark` + `theme-color`, no spellcheck/autocorrect on names and search, `translate="no"` on the logo, names and keys, NBSP between numbers and units, «Ім’я», 2-line clamps for category names and answers.
+  - Timer bars animate with `transform: scaleX`; the photo on screen loads with `fetchpriority="high"`, look-ahead photos with `low`.
+  - Production redeployed. 237 unit tests.
+- **API (`src/features/play`):** `useRestoreFocus`, `Kbd`, `activatesControl` in `useHostHotkeys`, `ImagePreloader.preload(src, { priority })`.
+- **Spec changes in `game-ui`:** "Setup screen" split into "Setup screen" + added "Setup controls" (radio groups, clamped names, no spellcheck), "Host hotkeys" (focused controls keep Enter/Space), "Exit to menu" and "Host help" (focus containment and return), "Result screen" (focus on «Реванш»); added "Screen-share text hygiene".
+
+**Original plan** (from the 2026-11-18 review and UI audits):
+
+- Hotkeys stop hijacking Enter/Space on focused buttons.
+- Exit confirm and help panel contain and restore focus.
+- Setup choices become native radio groups.
+- Dark native controls.
+- No spellcheck or translation artefacts on stream.
+- Long names and answers are clamped.
+- The timer bar uses `transform`.
+- Image `fetchpriority` is set.
+
+### 11. `polish-admin-and-storage` — ▶ proposed
+
+From the 2026-11-18 review and UI audits.
+
+- Leave guards for unsaved edits and running uploads.
+- Native `<dialog>` delete confirmations.
+- Accessible progress, table and search (query kept in the URL).
+- Admins can no longer upload SVG.
+- Photo path CHECK.
+- Statement-level `touch_category`.
+- Scripts: `.env.local` takes precedence, non-destructive re-seed, orphan cleanup script.

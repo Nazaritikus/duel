@@ -34,8 +34,12 @@ function defaultPreloader(): ImagePreloader {
     : noopPreloader
 }
 
-function preloadAll(preloader: ImagePreloader, sources: readonly string[]) {
-  return Promise.allSettled(sources.map((src) => preloader.preload(src)))
+function preloadAll(
+  preloader: ImagePreloader,
+  sources: readonly string[],
+  priority?: 'high' | 'low' | 'auto',
+) {
+  return Promise.allSettled(sources.map((src) => preloader.preload(src, { priority })))
 }
 
 /** Plays the cues for each rendered frame; the previous frame advances even while muted. */
@@ -91,7 +95,13 @@ function ActiveGame({
   const order = state.photoIds
   const photoIndex = state.photoIndex
   useEffect(() => {
-    void preloadAll(preloader, upcomingSources(order, photoIndex, photosById, PRELOAD_AHEAD))
+    // The photo on screen first at normal priority; look-ahead photos must not compete with it.
+    void preloadAll(preloader, upcomingSources(order, photoIndex, photosById, 0))
+    void preloadAll(
+      preloader,
+      upcomingSources(order, photoIndex + 1, photosById, PRELOAD_AHEAD - 1),
+      'low',
+    )
   }, [preloader, order, photoIndex, photosById])
   // null: closed; otherwise whether this dialog paused the game (and so must resume it).
   const [confirm, setConfirm] = useState<{ pausedByDialog: boolean } | null>(null)
@@ -158,7 +168,10 @@ function ActiveGame({
 
   return (
     <>
-      {screen}
+      {/* While the exit dialog is open the game behind it cannot take focus. */}
+      <div className="inert-scope" inert={confirm !== null}>
+        {screen}
+      </div>
       {confirm && <ExitConfirm onConfirm={onExit} onCancel={cancelExit} />}
     </>
   )

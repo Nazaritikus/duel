@@ -87,7 +87,7 @@ describe('GameScreen', () => {
     expect(screen.getByTestId('photo-frame')).toHaveClass('photo-frame--correct')
     const bar = screen.getByTestId('answer-bar')
     expect(within(bar).getByText('Volvo')).toBeInTheDocument()
-    expect(within(bar).getByText('Наступний хід: Олена')).toBeInTheDocument()
+    expect(bar.querySelector('.answer-bar__hint')).toHaveTextContent('Наступний хід: Олена')
     expect(within(screen.getByTestId('panel-1')).getByText('Правильно')).toBeInTheDocument()
     expect(within(screen.getByTestId('panel-2')).getByText('Наступний хід')).toBeInTheDocument()
   })

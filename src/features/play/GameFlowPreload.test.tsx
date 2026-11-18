@@ -57,7 +57,7 @@ function renderFlow(preloader: ImagePreloader, src = source()) {
 
 async function clickStart() {
   const grid = within(await screen.findByRole('group', { name: 'Категорії' }))
-  fireEvent.click(grid.getByRole('button', { name: /Авто/ }))
+  fireEvent.click(grid.getByRole('radio', { name: /Авто/ }))
   fireEvent.click(screen.getByRole('button', { name: /Почати дуель/ }))
 }
 
@@ -77,7 +77,9 @@ describe('GameFlow preloading', () => {
   })
 
   it('preloads ahead as the game moves to the next photo', async () => {
-    const preloader = { preload: vi.fn(async (_src: string) => {}) }
+    const preloader = {
+      preload: vi.fn(async (_src: string, _options?: { priority?: string }) => {}),
+    }
     const t = renderFlow(preloader)
     await clickStart()
     await screen.findByTestId('countdown')
@@ -89,6 +91,14 @@ describe('GameFlow preloading', () => {
     t.advance(2_100) // feedback over → next photo
     t.advance(16)
     expect(preloader.preload.mock.calls.map(([s]) => s)).toEqual(srcs(order.slice(1, 5)))
+    // The photo on screen keeps normal priority; look-ahead photos are fetched with low priority.
+    const priority = new Map(preloader.preload.mock.calls.map(([src, o]) => [src, o?.priority]))
+    expect(srcs([order[1]]).map((src) => priority.get(src))).toEqual(
+      srcs([order[1]]).map(() => undefined),
+    )
+    expect(new Set(srcs(order.slice(2, 5)).map((src) => priority.get(src)))).toEqual(
+      new Set(['low']),
+    )
   })
 
   it('starts anyway when preloading fails', async () => {
@@ -99,7 +109,9 @@ describe('GameFlow preloading', () => {
   })
 
   it('stays on setup with an error when the category cannot be loaded', async () => {
-    const preloader = { preload: vi.fn(async (_src: string) => {}) }
+    const preloader = {
+      preload: vi.fn(async (_src: string, _options?: { priority?: string }) => {}),
+    }
     renderFlow(
       preloader,
       source(async () => {

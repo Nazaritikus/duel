@@ -49,7 +49,7 @@ export function createSupabaseCategorySource(
         .single()
       if (error) throw error
       const category = data as { id: string; name: string; photos: PhotoRow[] }
-      const rows = [...category.photos].sort((a, b) => a.position - b.position)
+      const rows = category.photos.toSorted((a, b) => a.position - b.position)
 
       const paths = rows.flatMap((r) =>
         r.answer_storage_path ? [r.storage_path, r.answer_storage_path] : [r.storage_path],

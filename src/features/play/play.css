@@ -149,7 +149,15 @@
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 40px;
+  line-height: 1.2;
   color: var(--text);
+  /* Long answers: two lines at most, so the bar never grows over the photo. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .answer-bar__side {
@@ -253,16 +261,20 @@
   border-radius: 4px;
   background: var(--border-panel);
   overflow: hidden;
-  display: flex;
-}
-.panel--right .panel__track {
-  justify-content: flex-end;
 }
 
+/* Remaining time is a full-width bar scaled on the compositor (no layout per frame).
+   Player 1's bar shrinks towards the left, player 2's towards the right. */
 .panel__bar {
+  width: 100%;
   height: 8px;
   border-radius: 4px;
   background: var(--frozen-bar);
+  transform-origin: left center;
+  will-change: transform;
+}
+.panel--right .panel__bar {
+  transform-origin: right center;
 }
 
 /* Tones: colour + label + frame, never opacity. */

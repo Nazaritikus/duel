@@ -46,8 +46,8 @@
 .secondary-button:focus-visible,
 .danger-button:focus-visible,
 .start-button:focus-visible,
-.pill:focus-visible,
-.category-card:focus-visible {
+.pill:has(:focus-visible),
+.category-card:has(:focus-visible) {
   outline: 3px solid var(--text);
   outline-offset: 3px;
 }
@@ -178,6 +178,10 @@ kbd {
 }
 
 .category-grid {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
@@ -195,7 +199,9 @@ kbd {
 }
 
 .category-card {
-  height: 96px;
+  /* min-height: a two-line name plus the count may need a little more than 96px. */
+  min-height: 96px;
+  gap: 6px;
   border-radius: 16px;
   padding: 18px 20px;
   display: flex;
@@ -218,6 +224,14 @@ kbd {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 18px;
+  line-height: 1.2;
+  /* Names are up to 60 characters: at most two lines, then an ellipsis. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .category-card__count {
@@ -238,11 +252,16 @@ kbd {
 }
 
 .setup-option {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 .setup-option .setup-option__label {
+  padding: 0;
   font-size: 13px;
   font-weight: 400;
   text-transform: none;
@@ -684,4 +703,9 @@ kbd {
 
 .hotkeys--compact .hotkeys__row {
   grid-template-columns: 120px 1fr;
+}
+
+/* Wrapper that only exists to carry `inert` while an overlay is open; no box of its own. */
+.inert-scope {
+  display: contents;
 }

@@ -7,7 +7,7 @@ Optimised for screen sharing (16:9, high contrast, large type). Host controls ar
 ## Requirements
 
 ### Requirement: Setup screen
-The setup screen SHALL collect two player names, a category (published only, with search and scroll), time per player (45/60/90 s), penalty (3/5 s) and who starts (player 1 / random). An empty name SHALL fall back to "Гравець 1" / "Гравець 2". The duel SHALL start only with a category selected. The last names and settings SHALL be pre-filled on the next visit.
+The setup screen SHALL collect two player names (an empty name falls back to "Гравець 1" / "Гравець 2"), a published category (with search and scroll), time per player (45/60/90 s), penalty (3/5 s) and who starts (player 1 / random), and SHALL start the duel only with a category selected. The last names and settings SHALL be pre-filled on the next visit.
 
 #### Scenario: Only published categories
 - **WHEN** a category is in draft
@@ -24,6 +24,17 @@ The setup screen SHALL collect two player names, a category (published only, wit
 #### Scenario: Settings remembered
 - **WHEN** the host starts a duel with names "Назар" and "Олена", 90 s and a 5 s penalty, then reloads the page
 - **THEN** the setup screen is pre-filled with those names and settings
+
+### Requirement: Setup controls
+On the setup screen, time, penalty, who starts and the category grid SHALL each be a single-choice group that arrow keys move through and that assistive technology announces as a group. Category names longer than two lines SHALL be cut with an ellipsis. Player-name inputs and the category search SHALL show no spellcheck or autocorrect marks.
+
+#### Scenario: Arrow keys in an option group
+- **WHEN** focus is on the selected "60 с" option and the host presses `→`
+- **THEN** "90 с" becomes selected and focused
+
+#### Scenario: Long category name
+- **WHEN** a category name is 60 characters long
+- **THEN** its card shows at most two lines of the name followed by an ellipsis, and the photo count stays visible
 
 ### Requirement: Game screen
 The game screen SHALL show a header with the category name and photo number, the current photo (`object-fit: contain`, framed in the active player's colour) and a status bar with both players' names, times and remaining-time bars. The active player SHALL be highlighted in their colour and labelled "Відповідає"; the frozen player SHALL be labelled "Заморожено" and stay readable (no opacity dimming, contrast ≥ 4.5:1).
@@ -75,7 +86,7 @@ Times SHALL be shown as `m:ss`. In the last 10 s the active player's time SHALL 
 - **THEN** "−5 с" is shown and the next photo appears after 5 s
 
 ### Requirement: Host hotkeys
-The host SHALL control the game with keys: `→`/`Enter` correct, `X` wrong, `P` pass, `Space` pause/resume, `Esc` exit to menu with confirmation; `F` toggles fullscreen and `M` toggles sound on every screen. Letter keys SHALL be matched by physical key position so they work with any keyboard layout. Held-down keys SHALL NOT repeat the action. Hotkeys SHALL be ignored while focus is in an `input` or `textarea`.
+The host SHALL control the game with keys: `→`/`Enter` correct, `X` wrong, `P` pass, `Space` pause/resume, `Esc` exit to menu with confirmation; `F` toggles fullscreen and `M` toggles sound on every screen. Letter keys SHALL be matched by physical key position (any keyboard layout). Held-down keys SHALL NOT repeat the action. Hotkeys SHALL be ignored while typing in a text field. On a focused button, `Enter` and `Space` SHALL activate that button and SHALL NOT fire a hotkey.
 
 #### Scenario: Typing a name
 - **WHEN** focus is in the player-name input and the host types "X"
@@ -93,6 +104,10 @@ The host SHALL control the game with keys: `→`/`Enter` correct, `X` wrong, `P`
 - **WHEN** the host presses `F` and then `M` on the setup screen with no input focused
 - **THEN** the page enters fullscreen and sound is muted
 
+#### Scenario: Enter on a focused button
+- **WHEN** the exit confirmation is open, the host moves focus to «Продовжити гру» with `Tab` and presses `Enter`
+- **THEN** the dialog closes and the game continues
+
 ### Requirement: Preloading
 The next 2–3 photos and their answer photos SHALL be preloaded so a new photo appears without delay.
 
@@ -105,7 +120,7 @@ The next 2–3 photos and their answer photos SHALL be preloaded so a new photo 
 - **THEN** photo 5's answer photo and photos 6–8 with their answer photos are requested and decoded in the background
 
 ### Requirement: Result screen
-The result screen SHALL show the winner or "Нічия", the end reason ("Час суперника вичерпано" / "Фото закінчились"), the winner's remaining time, each player's stats (correct, wrong, pass), and actions "Реванш" and "Інша категорія". Copy SHALL not depend on the grammatical gender or case of player names.
+The result screen SHALL show the winner or "Нічия", the end reason ("Час суперника вичерпано" / "Фото закінчились"), the winner's remaining time, each player's stats (correct, wrong, pass), and actions "Реванш" and "Інша категорія". Copy SHALL not depend on the grammatical gender or case of player names. When the screen appears, focus SHALL be on "Реванш".
 
 #### Scenario: Rematch
 - **WHEN** the host chooses "Реванш"
@@ -122,6 +137,10 @@ The result screen SHALL show the winner or "Нічия", the end reason ("Час
 #### Scenario: Stats
 - **WHEN** player 1 finished with 14 correct, 3 wrong and 1 pass
 - **THEN** player 1's card shows 14 "правильно", 3 "помилки" and 1 "пас"
+
+#### Scenario: Keyboard rematch
+- **WHEN** the result screen appears and the host presses `Enter`
+- **THEN** the rematch starts
 
 ### Requirement: Fixed 16:9 stage
 Game screens SHALL be laid out on a fixed 1440×810 stage that is scaled uniformly to fit the browser window, centred and letterboxed on the page background, so the shared tab always shows the whole layout at the same proportions.
@@ -161,7 +180,7 @@ Before the first turn the game SHALL show a countdown screen with the category n
 - **THEN** the game screen appears with the starter's first photo
 
 ### Requirement: Exit to menu
-`Esc` during a game SHALL pause it and show an in-page confirmation "Вийти в меню?" (never a browser dialog). `Enter` SHALL confirm and return to the setup screen with names and settings kept; `Esc` SHALL cancel, closing the dialog and resuming the game unless the host had paused it before pressing `Esc`. While the dialog is open, other hotkeys SHALL be ignored.
+`Esc` during a game SHALL pause it and show an in-page confirmation "Вийти в меню?" (never a browser dialog). `Enter` SHALL return to the setup screen with names and settings kept; `Esc` SHALL close the dialog and resume the game unless it was paused before. Other hotkeys SHALL be ignored while the dialog is open. Focus SHALL start on «Вийти», SHALL stay inside the dialog (the game behind it cannot be focused) and SHALL return to where it was on cancel.
 
 #### Scenario: Confirm exit
 - **WHEN** the host presses `Esc` and then `Enter`
@@ -178,6 +197,10 @@ Before the first turn the game SHALL show a countdown screen with the category n
 #### Scenario: Judging keys ignored in the dialog
 - **WHEN** the confirmation is open and the host presses `X`
 - **THEN** no answer is marked and the dialog stays open
+
+#### Scenario: Focus stays in the dialog
+- **WHEN** the confirmation is open and the host presses `Tab` repeatedly
+- **THEN** focus moves only between «Продовжити гру» and «Вийти» (and the browser chrome), never to the game behind
 
 ### Requirement: Category source
 The setup screen SHALL list only published categories from the database with their photo counts, sorted by name, and a duel SHALL use that category's photos and answers. Draft categories SHALL NOT be listed even when the browser has a signed-in admin session. A configuration flag SHALL switch the game to the built-in mock catalog.
@@ -242,7 +265,7 @@ The host SHALL be able to toggle browser fullscreen with `F` on any screen or wi
 - **THEN** the page leaves fullscreen
 
 ### Requirement: Host help
-The setup screen SHALL offer «Як провести гру», an in-page panel with the host instructions (share this tab with audio on the video call, go fullscreen, judge with the keys, pause, exit) and the hotkeys cheat sheet. The panel SHALL close with its close button or `Esc`.
+The setup screen SHALL offer «Як провести гру», an in-page panel with the host instructions (share this tab with audio on the video call, go fullscreen, judge with the keys, pause, exit) and the hotkeys cheat sheet. The panel SHALL close with its close button or `Esc`. While the panel is open the setup form behind it SHALL not be focusable, and on close focus SHALL return to «Як провести гру».
 
 #### Scenario: Open help
 - **WHEN** the host presses «Як провести гру»
@@ -251,3 +274,22 @@ The setup screen SHALL offer «Як провести гру», an in-page panel 
 #### Scenario: Close help
 - **WHEN** the help panel is open and the host presses `Esc`
 - **THEN** the panel closes and the setup screen keeps its entries
+
+#### Scenario: Focus returns to the trigger
+- **WHEN** the host opens the help panel and closes it with «Закрити»
+- **THEN** focus is on «Як провести гру»
+
+### Requirement: Screen-share text hygiene
+The shared tab SHALL render native controls (scrollbars, search fields, focus and selection colours) in the dark theme. Browser auto-translation SHALL not alter the logo, player names or hotkey labels. Numbers SHALL not be separated from their units across a line break («45 с», «12 фото»). A long answer in the answer bar SHALL wrap to at most two lines with an ellipsis and never cover the photo frame beyond the bar.
+
+#### Scenario: Dark scrollbars
+- **WHEN** the category grid has more categories than fit and scrolls
+- **THEN** its scrollbar is drawn in the dark theme
+
+#### Scenario: Auto-translate
+- **WHEN** the browser translates the page into English
+- **THEN** "DUEL", the player names and the key labels stay unchanged
+
+#### Scenario: Long answer
+- **WHEN** an answer is 120 characters long
+- **THEN** the answer bar shows two lines ending with an ellipsis

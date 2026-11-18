@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useHostHotkeys } from './useHostHotkeys'
+import { appHotkeyFor, hotkeyFor, useHostHotkeys } from './useHostHotkeys'
 
 function setup() {
   const onHotkey = vi.fn()
@@ -73,5 +73,51 @@ describe('useHostHotkeys', () => {
     window.dispatchEvent(event)
     expect(onHotkey).not.toHaveBeenCalled()
     expect(event.defaultPrevented).toBe(false)
+  })
+
+  it('lets Enter and Space press a focused button or radio', () => {
+    const onHotkey = setup()
+    render(
+      <>
+        <button type="button">Продовжити</button>
+        <input type="radio" aria-label="60 с" />
+      </>,
+    )
+    const button = screen.getByRole('button')
+    fireEvent.keyDown(button, { code: 'Enter', key: 'Enter' })
+    fireEvent.keyDown(button, { code: 'Space', key: ' ' })
+    fireEvent.keyDown(screen.getByRole('radio'), { code: 'Space', key: ' ' })
+    expect(onHotkey).not.toHaveBeenCalled()
+    fireEvent.keyDown(button, { code: 'KeyX', key: 'x' })
+    expect(onHotkey).toHaveBeenCalledWith('wrong')
+  })
+})
+
+describe('hotkeyFor / appHotkeyFor targets', () => {
+  const on = (code: string, target: EventTarget) => {
+    const event = new KeyboardEvent('keydown', { code })
+    Object.defineProperty(event, 'target', { value: target })
+    return event
+  }
+  const el = (html: string) => {
+    const host = document.createElement('div')
+    host.innerHTML = html
+    return host.firstElementChild!
+  }
+
+  it('treats only text-entry fields as typing', () => {
+    expect(hotkeyFor(on('KeyX', el('<input type="text">')))).toBeNull()
+    expect(hotkeyFor(on('KeyX', el('<input type="search">')))).toBeNull()
+    expect(hotkeyFor(on('KeyX', el('<textarea></textarea>')))).toBeNull()
+    expect(hotkeyFor(on('KeyX', el('<input type="radio">')))).toBe('wrong')
+    expect(appHotkeyFor(on('KeyF', el('<input type="radio">')))).toBe('fullscreen')
+  })
+
+  it('yields activation keys to buttons, links, radios and checkboxes', () => {
+    expect(hotkeyFor(on('Enter', el('<button></button>')))).toBeNull()
+    expect(hotkeyFor(on('NumpadEnter', el('<a href="/x">x</a>')))).toBeNull()
+    expect(hotkeyFor(on('Space', el('<input type="checkbox">')))).toBeNull()
+    expect(hotkeyFor(on('Enter', el('<a>x</a>')))).toBe('correct')
+    expect(hotkeyFor(on('Enter', el('<div></div>')))).toBe('correct')
   })
 })

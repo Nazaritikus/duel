@@ -4,11 +4,12 @@ import { upcomingSources } from './preloadPlan'
 import type { PlayPhoto } from './types'
 
 function fakeImages(fail: (src: string) => boolean = () => false) {
-  const created: { src: string; decode: ReturnType<typeof vi.fn> }[] = []
+  const created: { src: string; fetchPriority: string; decode: ReturnType<typeof vi.fn> }[] = []
   const createImage = () => {
     const image = {
       src: '',
       decoding: '',
+      fetchPriority: '',
       onload: null,
       onerror: null,
       decode: vi.fn(async () => {
@@ -22,6 +23,14 @@ function fakeImages(fail: (src: string) => boolean = () => false) {
 }
 
 describe('createImagePreloader', () => {
+  it('sets the fetch priority before the request starts, auto by default', async () => {
+    const { created, createImage } = fakeImages()
+    const preloader = createImagePreloader({ createImage })
+    await preloader.preload('now')
+    await preloader.preload('next', { priority: 'low' })
+    expect(created.map((i) => i.fetchPriority)).toEqual(['auto', 'low'])
+  })
+
   it('decodes once per src and reuses the cached image', async () => {
     const { created, createImage } = fakeImages()
     const preloader = createImagePreloader({ createImage })

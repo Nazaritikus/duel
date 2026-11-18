@@ -37,6 +37,7 @@ export function PhotoFrame({ state, photo, names, now }: PhotoFrameProps) {
         <img
           className="photo-frame__img"
           src={src}
+          fetchPriority="high"
           alt={feedback ? photo.answer : 'Фото з категорії'}
           data-testid="photo"
           onError={() => setFailedSrc(src ?? null)}
@@ -75,13 +76,13 @@ export function PhotoFrame({ state, photo, names, now }: PhotoFrameProps) {
                   <path d="M5 12l5 5L20 7" />
                 </svg>
                 <div className="answer-bar__hint">
-                  Наступний хід: {names[otherPlayer(feedback.player)]}
+                  Наступний хід: <span translate="no">{names[otherPlayer(feedback.player)]}</span>
                 </div>
               </div>
             ) : (
               <div className="answer-bar__side">
                 <div className="answer-bar__penalty">
-                  −{Math.round(state.settings.penaltyMs / 1000)} с
+                  {`−${Math.round(state.settings.penaltyMs / 1000)}\u00a0с`}
                 </div>
                 <div className="answer-bar__hint">
                   наступне фото через {Math.max(1, Math.ceil((feedback.endsAt - now) / 1000))}…

@@ -29,14 +29,18 @@ export function CountdownScreen({ state, now, categoryName, names }: CountdownSc
   return (
     <div className={`countdown countdown--p${starter + 1}`} data-testid="countdown">
       <header className="game-header">
-        <div className="game-header__logo">DUEL</div>
+        <div className="game-header__logo" translate="no">
+          DUEL
+        </div>
         <div className="game-header__info">
           Категорія: <span className="game-header__category">{categoryName}</span>
         </div>
       </header>
       <main className="countdown__center">
         <div className="countdown__kicker">Починає</div>
-        <div className="countdown__name">{names[starter]}</div>
+        <div className="countdown__name" translate="no">
+          {names[starter]}
+        </div>
         <div className="countdown__ring" aria-live="polite">
           {seconds}
         </div>
@@ -44,7 +48,9 @@ export function CountdownScreen({ state, now, categoryName, names }: CountdownSc
       <footer className="status-bar">
         {([0, 1] as const).map((p) => (
           <div key={p} className={`countdown-panel countdown-panel--p${p + 1}`}>
-            <span className="panel__name">{names[p]}</span>
+            <span className="panel__name" translate="no">
+              {names[p]}
+            </span>
             <span className="panel__time">{formatTime(getRemainingMs(state, p, now))}</span>
           </div>
         ))}

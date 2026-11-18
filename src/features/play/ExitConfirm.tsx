@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'
+import { useRestoreFocus } from './useRestoreFocus'
+import { Kbd } from './Kbd'
 
 interface ExitConfirmProps {
   onConfirm: () => void
@@ -7,6 +9,7 @@ interface ExitConfirmProps {
 
 /** In-stage confirmation; never a browser dialog (it would block the page and show on stream). */
 export function ExitConfirm({ onConfirm, onCancel }: ExitConfirmProps) {
+  useRestoreFocus()
   const confirmRef = useRef<HTMLButtonElement>(null)
   useEffect(() => confirmRef.current?.focus(), [])
 
@@ -19,10 +22,10 @@ export function ExitConfirm({ onConfirm, onCancel }: ExitConfirmProps) {
         <div className="exit-confirm__hint">Поточна гра завершиться без результату</div>
         <div className="exit-confirm__actions">
           <button type="button" className="secondary-button" onClick={onCancel}>
-            Продовжити гру <kbd>Esc</kbd>
+            Продовжити гру <Kbd>Esc</Kbd>
           </button>
           <button type="button" className="danger-button" ref={confirmRef} onClick={onConfirm}>
-            Вийти <kbd>Enter</kbd>
+            Вийти <Kbd>Enter</Kbd>
           </button>
         </div>
       </div>

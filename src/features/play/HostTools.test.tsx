@@ -56,7 +56,7 @@ function renderFlow(storage = memoryStorage()) {
 
 async function startGame(t: ReturnType<typeof createTestClock>) {
   const grid = within(await screen.findByRole('group', { name: 'Категорії' }))
-  fireEvent.click(grid.getByRole('button', { name: /Авто/ }))
+  fireEvent.click(grid.getByRole('radio', { name: /Авто/ }))
   fireEvent.click(screen.getByRole('button', { name: /Почати дуель/ }))
   await screen.findByTestId('countdown')
   t.advance(3_000)
@@ -104,7 +104,9 @@ describe('sounds', () => {
 describe('host help', () => {
   it('opens with the steps and hotkeys and closes with Esc, keeping the entries', async () => {
     renderFlow()
-    fireEvent.change(screen.getByLabelText('Гравець 1'), { target: { value: 'Назар' } })
+    fireEvent.change(screen.getByRole('textbox', { name: 'Гравець 1' }), {
+      target: { value: 'Назар' },
+    })
     fireEvent.click(screen.getByRole('button', { name: 'Як провести гру' }))
     const dialog = screen.getByRole('dialog', { name: 'Як провести гру' })
     expect(dialog).toHaveTextContent('Поділитися звуком вкладки')
@@ -112,7 +114,32 @@ describe('host help', () => {
     expect(within(dialog).getByText('На весь екран')).toBeInTheDocument()
     key('Escape')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(screen.getByLabelText('Гравець 1')).toHaveValue('Назар')
+    expect(screen.getByRole('textbox', { name: 'Гравець 1' })).toHaveValue('Назар')
+  })
+
+  it('makes the setup form inert while open and returns focus to the trigger', async () => {
+    renderFlow()
+    const trigger = screen.getByRole('button', { name: 'Як провести гру' })
+    trigger.focus()
+    fireEvent.click(trigger)
+    expect(screen.getByRole('textbox', { name: 'Гравець 1' }).closest('[inert]')).not.toBeNull()
+    expect(screen.getByRole('button', { name: 'Закрити' })).toHaveFocus()
+    fireEvent.click(screen.getByRole('button', { name: 'Закрити' }))
+    expect(screen.getByRole('textbox', { name: 'Гравець 1' }).closest('[inert]')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Як провести гру' })).toHaveFocus()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Як провести гру' }))
+    key('Escape')
+    expect(screen.getByRole('button', { name: 'Як провести гру' })).toHaveFocus()
+  })
+
+  it('makes the game inert behind the exit dialog', async () => {
+    const { t } = renderFlow()
+    await startGame(t)
+    key('Escape')
+    expect(screen.getByTestId('photo-frame').closest('[inert]')).not.toBeNull()
+    key('Escape')
+    expect(screen.getByTestId('photo-frame').closest('[inert]')).toBeNull()
   })
 
   it('lists the hotkeys on the pause overlay', async () => {

@@ -1,8 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { HotkeyList } from './HotkeyList'
+import { useRestoreFocus } from './useRestoreFocus'
+import { Kbd } from './Kbd'
 
 /** «Як провести гру»: in-page panel with host steps and the cheat sheet; Esc closes it. */
 export function HostHelp({ onClose }: { onClose: () => void }) {
+  useRestoreFocus()
   const closeRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
     closeRef.current?.focus()
@@ -33,15 +36,15 @@ export function HostHelp({ onClose }: { onClose: () => void }) {
               «Поділитися звуком вкладки», щоб гравці чули сигнали.
             </li>
             <li>
-              Натисніть <kbd>F</kbd>, щоб розгорнути гру на весь екран.
+              Натисніть <Kbd>F</Kbd>, щоб розгорнути гру на весь екран.
             </li>
             <li>Введіть імена, оберіть категорію й налаштування, натисніть «Почати дуель».</li>
             <li>
-              Слухайте відповідь гравця й оцінюйте клавішами: <kbd>→</kbd> — правильно, <kbd>X</kbd>{' '}
-              — помилка, <kbd>P</kbd> — пас.
+              Слухайте відповідь гравця й оцінюйте клавішами: <Kbd>→</Kbd> — правильно, <Kbd>X</Kbd>{' '}
+              — помилка, <Kbd>P</Kbd> — пас.
             </li>
             <li>
-              <kbd>Space</kbd> ставить паузу (фото ховається), <kbd>Esc</kbd> — вихід у меню з
+              <Kbd>Space</Kbd> ставить паузу (фото ховається), <Kbd>Esc</Kbd> — вихід у меню з
               підтвердженням.
             </li>
           </ol>

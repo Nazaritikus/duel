@@ -90,6 +90,7 @@ supabase/migrations/
 - UI copy is Ukrainian; code, identifiers, commits and OpenSpec artifacts are English.
 - Screen-share constraints: 16:9 fixed stage, text contrast ≥ 4.5:1, never convey state with opacity alone, large type (Unbounded for display, Inter for body, JetBrains Mono for timers).
 - Colours: background `#0B0D12`, surface `#151922`, player 1 `#F5A524`, player 2 `#3BC9F5`, correct `#30A46C`, wrong `#E5484D`, frozen text `#C4C9D2`.
-- Host hotkeys (`→`/`Enter`, `X`, `P`, `Space`, `Esc`, plus `F` fullscreen and `M` mute on every screen) are ignored while focus is in an input.
+- Host hotkeys (`→`/`Enter`, `X`, `P`, `Space`, `Esc`, plus `F` fullscreen and `M` mute on every screen) are ignored while focus is in a text input. Enter/Space yield to a focused button, link, radio or checkbox.
+- Play overlays live inside the scaled stage, so they don't use native `<dialog>`: mark the content behind them `inert` and call `useRestoreFocus()` in the overlay. Setup choices are native radio groups.
 - Sounds are synthesised with Web Audio (`src/features/play/sound/`); no audio files.
 - Game-logic changes come with Vitest tests.
