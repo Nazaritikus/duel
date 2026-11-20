@@ -5,6 +5,7 @@ export { DEFAULT_SETTINGS } from './types'
 export type {
   Action,
   ActivePhase,
+  CheckingPhase,
   Clock,
   CountdownPhase,
   CreateGameOptions,

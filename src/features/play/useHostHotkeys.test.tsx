@@ -35,6 +35,13 @@ describe('useHostHotkeys', () => {
     expect(onHotkey.mock.calls.map((c) => c[0])).toEqual(['wrong', 'pass'])
   })
 
+  it('checks the answer with Q, also on the Ukrainian layout (KeyQ types "й")', () => {
+    const onHotkey = setup()
+    fireEvent.keyDown(window, { code: 'KeyQ', key: 'q' })
+    fireEvent.keyDown(window, { code: 'KeyQ', key: 'й' })
+    expect(onHotkey.mock.calls.map((c) => c[0])).toEqual(['check', 'check'])
+  })
+
   it('ignores a held key (auto-repeat)', () => {
     const onHotkey = setup()
     fireEvent.keyDown(window, { code: 'Space', key: ' ' })
@@ -107,6 +114,7 @@ describe('hotkeyFor / appHotkeyFor targets', () => {
 
   it('treats only text-entry fields as typing', () => {
     expect(hotkeyFor(on('KeyX', el('<input type="text">')))).toBeNull()
+    expect(hotkeyFor(on('KeyQ', el('<input type="text">')))).toBeNull()
     expect(hotkeyFor(on('KeyX', el('<input type="search">')))).toBeNull()
     expect(hotkeyFor(on('KeyX', el('<textarea></textarea>')))).toBeNull()
     expect(hotkeyFor(on('KeyX', el('<input type="radio">')))).toBe('wrong')

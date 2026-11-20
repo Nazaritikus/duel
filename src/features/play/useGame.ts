@@ -13,7 +13,7 @@ export const browserClock: FrameClock = {
   cancelFrame: (id) => cancelAnimationFrame(id),
 }
 
-export type GameCommand = 'correct' | 'wrong' | 'pass' | 'pause' | 'resume'
+export type GameCommand = 'correct' | 'wrong' | 'pass' | 'check' | 'pause' | 'resume'
 
 interface UseGameOptions {
   photoIds: readonly string[]

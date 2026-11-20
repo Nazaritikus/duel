@@ -24,7 +24,7 @@ const category: PlayCategory = {
 const photosById = new Map(category.photos.map((p) => [p.id, p]))
 const names: PlayerNames = ['Назар', 'Олена']
 
-const act = (s: GameState, type: HostActionType | 'pause' | 'resume', now: number) =>
+const act = (s: GameState, type: HostActionType | 'pause' | 'resume' | 'check', now: number) =>
   gameReducer(s, { type, now })
 
 function show(state: GameState, now: number) {
@@ -136,6 +136,22 @@ describe('GameScreen', () => {
       />,
     )
     expect(screen.getByTestId('photo')).toHaveAttribute('src', '/a.answer.jpg')
+  })
+
+  it('shows the answer, the answer photo and the host hint during a check', () => {
+    show(act(gameOn('a'), 'check', 10_000), 12_000)
+    expect(screen.getByTestId('photo')).toHaveAttribute('src', '/a.answer.jpg')
+    expect(screen.getByTestId('answer-bar')).toHaveTextContent('Ferrari')
+    expect(screen.getByTestId('check-hint')).toHaveTextContent('→ правильно · X помилка')
+    expect(screen.getByTestId('photo-frame')).toHaveClass('photo-frame--checking')
+    expect(screen.getByTestId('panel-1')).toHaveAttribute('data-tone', 'checking')
+    expect(within(screen.getByTestId('panel-1')).getByText('Перевірка')).toBeInTheDocument()
+  })
+
+  it('keeps the question photo during a check when there is no answer photo', () => {
+    show(act(gameOn('b'), 'check', 10_000), 10_500)
+    expect(screen.getByTestId('photo')).toHaveAttribute('src', '/b.jpg')
+    expect(screen.getByTestId('answer-bar')).toHaveTextContent('Volvo')
   })
 
   it('hides the photo while paused and shows it again after resuming', () => {

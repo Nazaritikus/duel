@@ -93,6 +93,10 @@
 .photo-frame--wrong {
   border-color: var(--wrong);
 }
+/* Answer check: neutral (neither verdict), told apart by the white frame and the bar. */
+.photo-frame--checking {
+  border-color: var(--text);
+}
 
 .photo-frame__img {
   display: block;
@@ -177,6 +181,13 @@
   font-weight: 700;
   font-size: 40px;
   color: var(--wrong-text);
+}
+
+.answer-bar__verdict {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
 }
 
 .answer-bar__hint {
@@ -326,6 +337,18 @@
 }
 .panel--correct .panel__time {
   color: var(--correct-text);
+}
+
+.panel--checking {
+  background: var(--surface);
+  border-color: var(--text);
+}
+.panel--checking .panel__tag {
+  background: var(--text);
+  color: var(--bg);
+}
+.panel--checking .panel__time {
+  color: var(--text);
 }
 
 /* ---------- Pause ---------- */

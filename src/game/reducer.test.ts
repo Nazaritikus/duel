@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { getRemainingMs } from './clock'
-import { gameReducer, getCurrentPhotoId } from './reducer'
-import { startedGame } from './test-utils'
+import { createGame, gameReducer, getCurrentPhotoId } from './reducer'
+import { PHOTOS, startedGame } from './test-utils'
 import type { Action, GameState, HostActionType } from './types'
 
 const tick = (s: GameState, now: number) => gameReducer(s, { type: 'tick', now })
@@ -147,5 +147,82 @@ describe('timing does not drift', () => {
     for (const p of [0, 1] as const) {
       expect(getRemainingMs(coarse, p, 60_000)).toBe(getRemainingMs(fine, p, 60_000))
     }
+  })
+})
+
+describe('answer check', () => {
+  const check = (s: GameState, now: number) => gameReducer(s, { type: 'check', now })
+  const pause = (s: GameState, now: number) => gameReducer(s, { type: 'pause', now })
+  const resume = (s: GameState, now: number) => gameReducer(s, { type: 'resume', now })
+
+  it('stops both clocks while the answer is checked', () => {
+    let s = check(startedGame(0), 40_000) // player 1 has 20.0 s
+    expect(s.phase).toEqual({ type: 'checking', player: 0 })
+    s = tick(s, 50_000)
+    expect(getRemainingMs(s, 0, 50_000)).toBe(20_000)
+    expect(getRemainingMs(s, 1, 50_000)).toBe(60_000)
+    // Even far past the time-out moment nothing ends the check.
+    s = tick(s, 200_000)
+    expect(s.phase).toEqual({ type: 'checking', player: 0 })
+  })
+
+  it('correct after a check behaves like a correct answer', () => {
+    let s = act(check(startedGame(0), 40_000), 'correct', 45_000)
+    expect(s.phase).toMatchObject({ type: 'feedback', kind: 'correct', player: 0, endsAt: 47_000 })
+    expect(s.stats[0]).toEqual({ correct: 1, wrong: 0, pass: 0 })
+    s = tick(s, 47_000)
+    expect(s.phase).toEqual({ type: 'turn', player: 1 })
+    expect(getRemainingMs(s, 0, 47_000)).toBe(20_000)
+    expect(getCurrentPhotoId(s)).toBe(s.photoIds[1])
+  })
+
+  it('wrong after a check consumes the penalty (20.0 s -> 17.0 s)', () => {
+    let s = act(check(startedGame(0), 40_000), 'wrong', 45_000)
+    expect(s.phase).toMatchObject({ type: 'feedback', kind: 'wrong', player: 0, endsAt: 48_000 })
+    s = tick(s, 48_000)
+    expect(s.phase).toEqual({ type: 'turn', player: 0 })
+    expect(getRemainingMs(s, 0, 48_000)).toBe(17_000)
+    expect(getCurrentPhotoId(s)).toBe(s.photoIds[1])
+    expect(s.stats[0]).toEqual({ correct: 0, wrong: 1, pass: 0 })
+  })
+
+  it('pass after a check counts as a pass', () => {
+    const s = act(check(startedGame(0), 40_000), 'pass', 45_000)
+    expect(s.phase).toMatchObject({ type: 'feedback', kind: 'pass', player: 0 })
+    expect(s.stats[0]).toEqual({ correct: 0, wrong: 0, pass: 1 })
+  })
+
+  it('ignores a second check', () => {
+    const s = check(startedGame(0), 40_000)
+    expect(check(s, 40_000)).toBe(s)
+  })
+
+  it('ignores a check during the countdown, feedback, pause and after the end', () => {
+    const countdown = createGame({ photoIds: PHOTOS, now: 0, seed: 1 })
+    expect(check(countdown, 1_000).phase.type).toBe('countdown')
+    const feedback = act(startedGame(0), 'correct', 10_000)
+    expect(check(feedback, 10_500).phase).toMatchObject({ type: 'feedback' })
+    const paused = pause(startedGame(0), 10_000)
+    expect(check(paused, 10_500).phase.type).toBe('paused')
+    const finished = tick(startedGame(0), 60_000)
+    expect(finished.phase.type).toBe('finished')
+    expect(check(finished, 61_000)).toBe(finished)
+  })
+
+  it('pause and resume during a check keep it with both clocks stopped', () => {
+    let s = pause(check(startedGame(0), 40_000), 42_000)
+    expect(s.phase).toMatchObject({ type: 'paused', resume: { type: 'checking', player: 0 } })
+    s = resume(s, 60_000)
+    expect(s.phase).toEqual({ type: 'checking', player: 0 })
+    s = tick(s, 70_000)
+    expect(getRemainingMs(s, 0, 70_000)).toBe(20_000)
+    s = act(s, 'wrong', 70_000)
+    s = tick(s, 73_000)
+    expect(getRemainingMs(s, 0, 73_000)).toBe(17_000)
+  })
+
+  it('does not count the check itself in the statistics', () => {
+    const s = check(startedGame(0), 40_000)
+    expect(s.stats).toEqual(startedGame(0).stats)
   })
 })

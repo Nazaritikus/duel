@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 
-export type HostHotkey = 'correct' | 'wrong' | 'pass' | 'togglePause' | 'exit'
+export type HostHotkey = 'correct' | 'wrong' | 'pass' | 'check' | 'togglePause' | 'exit'
 
 /** Physical keys (`KeyboardEvent.code`), so letter keys work with any layout (e.g. Ukrainian). */
 const KEY_MAP: Record<string, HostHotkey> = {
@@ -9,6 +9,7 @@ const KEY_MAP: Record<string, HostHotkey> = {
   NumpadEnter: 'correct',
   KeyX: 'wrong',
   KeyP: 'pass',
+  KeyQ: 'check',
   Space: 'togglePause',
   Escape: 'exit',
 }

@@ -3,10 +3,21 @@ import { gameReducer, type GameState, type HostActionType } from '../../game'
 import { startedGame } from '../../game/test-utils'
 import { getPanelView } from './panelView'
 
-const act = (s: GameState, type: HostActionType | 'pause', now: number) =>
+const act = (s: GameState, type: HostActionType | 'pause' | 'check', now: number) =>
   gameReducer(s, { type, now })
 
 describe('getPanelView', () => {
+  it('tags the answering player «Перевірка» with a stopped time during a check', () => {
+    const s = act(startedGame(0), 'check', 18_000)
+    expect(getPanelView(s, 0, 30_000)).toEqual({
+      tone: 'checking',
+      label: 'Перевірка',
+      time: '0:42',
+      pct: 0.7,
+    })
+    expect(getPanelView(s, 1, 30_000)).toMatchObject({ tone: 'frozen', label: 'Заморожено' })
+  })
+
   it('shows the answering player as active and the other as frozen', () => {
     const s = startedGame(0)
     expect(getPanelView(s, 0, 18_000)).toEqual({

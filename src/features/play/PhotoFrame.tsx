@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { getRemainingMs, isLastSeconds, otherPlayer, type GameState } from '../../game'
+import { Kbd } from './Kbd'
 import type { PlayerNames, PlayPhoto } from './types'
 
-type Ring = 'p1' | 'p2' | 'correct' | 'wrong' | 'neutral'
+type Ring = 'p1' | 'p2' | 'checking' | 'correct' | 'wrong' | 'neutral'
 
 function getRing(state: GameState, now: number): Ring {
   const { phase } = state
   if (phase.type === 'feedback') return phase.kind === 'correct' ? 'correct' : 'wrong'
+  if (phase.type === 'checking') return 'checking'
   if (phase.type === 'turn') {
     if (isLastSeconds(getRemainingMs(state, phase.player, now))) return 'wrong'
     return phase.player === 0 ? 'p1' : 'p2'
@@ -24,9 +26,11 @@ interface PhotoFrameProps {
 export function PhotoFrame({ state, photo, names, now }: PhotoFrameProps) {
   const { phase } = state
   const feedback = phase.type === 'feedback' ? phase : null
+  // The answer (and answer photo) is shown during feedback and while the host checks it.
+  const reveal = feedback !== null || phase.type === 'checking'
   // While paused the photo is not rendered at all, so it cannot be studied.
   const showPhoto = photo && phase.type !== 'paused'
-  const src = feedback && photo?.answerSrc ? photo.answerSrc : photo?.src
+  const src = reveal && photo?.answerSrc ? photo.answerSrc : photo?.src
   // Remembering which src failed resets the state by itself when the photo changes.
   const [failedSrc, setFailedSrc] = useState<string | null>(null)
   const failed = src !== undefined && failedSrc === src
@@ -38,7 +42,7 @@ export function PhotoFrame({ state, photo, names, now }: PhotoFrameProps) {
           className="photo-frame__img"
           src={src}
           fetchPriority="high"
-          alt={feedback ? photo.answer : 'Фото з категорії'}
+          alt={reveal ? photo.answer : 'Фото з категорії'}
           data-testid="photo"
           onError={() => setFailedSrc(src ?? null)}
         />
@@ -49,17 +53,26 @@ export function PhotoFrame({ state, photo, names, now }: PhotoFrameProps) {
         </div>
       )}
 
-      {feedback && photo && (
+      {reveal && photo && (
         <>
-          <div
-            className={`photo-frame__tint photo-frame__tint--${feedback.kind === 'correct' ? 'correct' : 'wrong'}`}
-          />
+          {feedback && (
+            <div
+              className={`photo-frame__tint photo-frame__tint--${feedback.kind === 'correct' ? 'correct' : 'wrong'}`}
+            />
+          )}
           <div className="answer-bar" data-testid="answer-bar">
             <div className="answer-bar__main">
               <div className="answer-bar__caption">Правильна відповідь</div>
               <div className="answer-bar__answer">{photo.answer}</div>
             </div>
-            {feedback.kind === 'correct' ? (
+            {!feedback ? (
+              <div className="answer-bar__side">
+                <div className="answer-bar__verdict" data-testid="check-hint">
+                  <Kbd>→</Kbd> правильно · <Kbd>X</Kbd> помилка
+                </div>
+                <div className="answer-bar__hint">час зупинено</div>
+              </div>
+            ) : feedback.kind === 'correct' ? (
               <div className="answer-bar__side">
                 <svg
                   width="44"

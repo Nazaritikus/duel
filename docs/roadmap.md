@@ -20,6 +20,7 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 | 11  | `polish-admin-and-storage`   | ✔ 2026-11-18 | Leave guards, native confirm dialogs, URL search, no admin SVG, path CHECK, safe re-seed, orphan script                       |
 | 12  | `add-category-photo-order`   | ▶            |                                                                                                                               |
 | 13  | `lower-publish-minimum`      | ✔ 2026-11-18 | Publish minimum 50 photos (DB trigger + admin UI), deployed                                                                   |
+| 14  | `add-host-answer-check`      | ✔ 2026-11-21 | Host `Q` answer check: clocks stop, answer + answer photo shown, then usual verdict; category names no longer clipped         |
 
 ```
 1 ─► 2 ─► 3 ─► 4  (offline MVP)
@@ -325,3 +326,11 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 
 - The publish minimum drops from 60 to 50 photos (owner decision after curating «Марки авто» to 57). It is enforced in the DB trigger (forward migration `20261118103802_lower_publish_minimum`, pushed to the cloud) and in the admin UI (`MIN_PHOTOS`); production redeployed.
 - Spec changes in `admin`: "Category management" and "Publish rule enforced by the database" use 50.
+
+### 14. `add-host-answer-check` — ✔ archived as `2026-11-21-add-host-answer-check`
+
+- Host hotkey `Q` «Перевірити відповідь»: during a turn both clocks stop and the correct answer (and answer photo) is shown; the host then judges with `→`/`Enter`, `X` or `P` as usual. Game-rule change in `game-engine`: new `checking` phase, no way back to the turn.
+- Game screen: neutral frame, panel tag «Перевірка», host hint «→ правильно · X помилка»; `Q` in the cheat sheet.
+- Engine: `CheckingPhase` (`{ type: 'checking', player }`) in `ActivePhase` and a `check` action; verdicts accepted from `checking` (wrong/pass restart the clock for the penalty); pause/resume keep the check. UI: `KeyQ` → `check`, panel tone `checking`, `photo-frame--checking`, host help line.
+- Spec changes: `game-engine` gains "Answer check" and updates "Pause" and "Host input outside an active turn"; `game-ui` gains "Answer check screen" and lists `Q` in "Host hotkeys".
+- Also shipped: setup category cards grow to fit a two-line name instead of clipping it (`flex-shrink: 0` on the name).

@@ -5,7 +5,7 @@ import { cuesBetween, type Cue, type Frame } from './cues'
 
 const step = (
   s: GameState,
-  type: 'correct' | 'wrong' | 'pass' | 'pause' | 'resume' | 'tick',
+  type: 'correct' | 'wrong' | 'pass' | 'check' | 'pause' | 'resume' | 'tick',
   now: number,
 ) => gameReducer(s, { type, now })
 
@@ -24,6 +24,13 @@ function run(state: GameState, from: number, to: number, dt = 16) {
 }
 
 describe('cuesBetween', () => {
+  it('is silent when a check starts and while it lasts, even in the last 10 s', () => {
+    const s0 = startedGame(0, { timePerPlayerMs: 60_000 })
+    const checking = step(s0, 'check', 52_500) // 7.5 s left
+    expect(cuesBetween({ state: s0, now: 52_490 }, { state: checking, now: 52_500 })).toEqual([])
+    expect(run(checking, 52_500, 60_000).heard).toEqual([])
+  })
+
   it('plays correct and wrong once when feedback starts', () => {
     const s0 = startedGame(0, { timePerPlayerMs: 60_000 })
     const correct = step(s0, 'correct', 1000)

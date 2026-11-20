@@ -6,7 +6,7 @@ import {
   type PlayerIndex,
 } from '../../game'
 
-export type PanelTone = 'active' | 'last10' | 'frozen' | 'correct' | 'next' | 'wrong'
+export type PanelTone = 'active' | 'last10' | 'frozen' | 'checking' | 'correct' | 'next' | 'wrong'
 
 export interface PanelView {
   tone: PanelTone
@@ -16,10 +16,12 @@ export interface PanelView {
   pct: number
 }
 
-/** Who the current turn or feedback belongs to, if anyone. */
+/** Who the current turn, answer check or feedback belongs to, if anyone. */
 export function getOwner(state: GameState): PlayerIndex | null {
   const { phase } = state
-  return phase.type === 'turn' || phase.type === 'feedback' ? phase.player : null
+  return phase.type === 'turn' || phase.type === 'checking' || phase.type === 'feedback'
+    ? phase.player
+    : null
 }
 
 export function getPanelView(state: GameState, player: PlayerIndex, now: number): PanelView {
@@ -34,6 +36,10 @@ export function getPanelView(state: GameState, player: PlayerIndex, now: number)
     return isLastSeconds(remaining)
       ? { tone: 'last10', label: 'Останні секунди', time, pct }
       : { tone: 'active', label: 'Відповідає', time, pct }
+  }
+
+  if (phase.type === 'checking' && isOwner) {
+    return { tone: 'checking', label: 'Перевірка', time, pct }
   }
 
   if (phase.type === 'feedback') {

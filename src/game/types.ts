@@ -43,8 +43,14 @@ export interface FeedbackPhase {
   endsAt: number
 }
 
+/** The host is checking the answer: it is shown to everyone, both clocks are stopped. */
+export interface CheckingPhase {
+  type: 'checking'
+  player: PlayerIndex
+}
+
 /** Phases the host can pause. */
-export type ActivePhase = CountdownPhase | TurnPhase | FeedbackPhase
+export type ActivePhase = CountdownPhase | TurnPhase | CheckingPhase | FeedbackPhase
 
 export interface PausedPhase {
   type: 'paused'
@@ -105,5 +111,6 @@ export type HostActionType = 'correct' | 'wrong' | 'pass'
 export type Action =
   | { type: 'tick'; now: number }
   | { type: HostActionType; now: number }
+  | { type: 'check'; now: number }
   | { type: 'pause'; now: number }
   | { type: 'resume'; now: number }

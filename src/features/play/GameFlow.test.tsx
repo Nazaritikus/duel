@@ -225,6 +225,24 @@ describe('GameFlow', () => {
     expect(within(screen.getByTestId('panel-1')).getByText('0:15')).toBeInTheDocument()
   })
 
+  it('checks the answer with Q: clocks stop, then X gives the usual penalty', async () => {
+    const { t } = renderFlow()
+    await startDuel({ time: '45\u00a0с' })
+    t.advance(3_000)
+    t.advance(25_000) // 20.0 s left
+    key('KeyQ')
+    expect(screen.getByTestId('panel-1')).toHaveAttribute('data-tone', 'checking')
+    expect(screen.getByTestId('answer-bar')).toHaveTextContent(/Цифри \d/)
+    t.advance(10_000)
+    expect(within(screen.getByTestId('panel-1')).getByText('0:20')).toBeInTheDocument()
+    key('KeyQ') // a second check changes nothing
+    key('KeyX')
+    expect(screen.getByText('−3 с')).toBeInTheDocument()
+    t.advance(3_000)
+    expect(screen.getByTestId('game-header-info')).toHaveTextContent('фото 2')
+    expect(within(screen.getByTestId('panel-1')).getByText('0:17')).toBeInTheDocument()
+  })
+
   it('shows an error and stays on setup when the category fails to load', async () => {
     const failing: CategorySource = {
       ...source,

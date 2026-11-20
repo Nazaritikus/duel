@@ -92,7 +92,7 @@ function resolveTime(state: GameState, now: number): GameState {
     if (phase.type === 'finished' || phase.type === 'paused') return s
 
     const tAt = timeoutAt(s.clock)
-    const phaseEnd = phase.type === 'turn' ? null : phase.endsAt
+    const phaseEnd = 'endsAt' in phase ? phase.endsAt : null
 
     const timedOut = tAt !== null && tAt <= now && (phaseEnd === null || tAt <= phaseEnd)
     if (timedOut && s.clock.running !== null) {
@@ -147,7 +147,7 @@ function resume(s: GameState, now: number): GameState {
   if (phase.type !== 'paused') return s
   const shift = now - phase.pausedAt
   const prev = phase.resume
-  const resumed = prev.type === 'turn' ? prev : { ...prev, endsAt: prev.endsAt + shift }
+  const resumed = 'endsAt' in prev ? { ...prev, endsAt: prev.endsAt + shift } : prev
   return {
     ...s,
     clock: phase.runningPlayer === null ? s.clock : startClock(s.clock, phase.runningPlayer, now),
@@ -174,10 +174,20 @@ export function gameReducer(state: GameState, action: Action): GameState {
       const next = resume(resolved, now)
       return next === resolved ? unchanged() : next
     }
+    case 'check': {
+      // Only a running turn can be checked; there is no way back to it afterwards.
+      if (resolved.phase.type !== 'turn') return unchanged()
+      return {
+        ...resolved,
+        clock: stopClock(resolved.clock, now),
+        phase: { type: 'checking', player: resolved.phase.player },
+        lastNow: now,
+      }
+    }
   }
 
-  // Host judgements only count while a player is answering.
-  if (resolved.phase.type !== 'turn') return unchanged()
+  // Host judgements only count while a player is answering or the answer is being checked.
+  if (resolved.phase.type !== 'turn' && resolved.phase.type !== 'checking') return unchanged()
 
   const { player } = resolved.phase
   const stats = withStat(resolved.stats, player, action.type)
@@ -197,8 +207,11 @@ export function gameReducer(state: GameState, action: Action): GameState {
     }
   }
 
+  // Wrong / pass: the penalty runs on the player's clock (restarted if a check stopped it).
   return {
     ...resolved,
+    clock:
+      resolved.phase.type === 'checking' ? startClock(resolved.clock, player, now) : resolved.clock,
     phase: {
       type: 'feedback',
       kind: action.type,
