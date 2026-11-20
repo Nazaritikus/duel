@@ -199,7 +199,7 @@ kbd {
 }
 
 .category-card {
-  /* min-height: a two-line name plus the count may need a little more than 96px. */
+  /* At least 96px; a two-line name plus the count may grow the card and its row. */
   min-height: 96px;
   gap: 6px;
   border-radius: 16px;
@@ -232,6 +232,9 @@ kbd {
   line-clamp: 2;
   overflow: hidden;
   overflow-wrap: anywhere;
+  /* overflow: hidden lets flexbox squeeze the name below its two lines; keep its height so the
+     card (and its grid row) grows instead. */
+  flex-shrink: 0;
 }
 
 .category-card__count {
