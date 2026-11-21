@@ -104,9 +104,7 @@ describe('sounds', () => {
 describe('host help', () => {
   it('opens with the steps and hotkeys and closes with Esc, keeping the entries', async () => {
     renderFlow()
-    fireEvent.change(screen.getByRole('textbox', { name: 'Гравець 1' }), {
-      target: { value: 'Назар' },
-    })
+    fireEvent.change(screen.getByLabelText('Пошук категорії'), { target: { value: 'Цифри' } })
     fireEvent.click(screen.getByRole('button', { name: 'Як провести гру' }))
     const dialog = screen.getByRole('dialog', { name: 'Як провести гру' })
     expect(dialog).toHaveTextContent('Поділитися звуком вкладки')
@@ -114,7 +112,7 @@ describe('host help', () => {
     expect(within(dialog).getByText('На весь екран')).toBeInTheDocument()
     key('Escape')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Гравець 1' })).toHaveValue('Назар')
+    expect(screen.getByLabelText('Пошук категорії')).toHaveValue('Цифри')
   })
 
   it('makes the setup form inert while open and returns focus to the trigger', async () => {
@@ -122,10 +120,10 @@ describe('host help', () => {
     const trigger = screen.getByRole('button', { name: 'Як провести гру' })
     trigger.focus()
     fireEvent.click(trigger)
-    expect(screen.getByRole('textbox', { name: 'Гравець 1' }).closest('[inert]')).not.toBeNull()
+    expect(screen.getByLabelText('Пошук категорії').closest('[inert]')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Закрити' })).toHaveFocus()
     fireEvent.click(screen.getByRole('button', { name: 'Закрити' }))
-    expect(screen.getByRole('textbox', { name: 'Гравець 1' }).closest('[inert]')).toBeNull()
+    expect(screen.getByLabelText('Пошук категорії').closest('[inert]')).toBeNull()
     expect(screen.getByRole('button', { name: 'Як провести гру' })).toHaveFocus()
 
     fireEvent.click(screen.getByRole('button', { name: 'Як провести гру' }))

@@ -334,3 +334,4 @@ Requirements live in `openspec/specs/`; this file only tracks order and status.
 - Engine: `CheckingPhase` (`{ type: 'checking', player }`) in `ActivePhase` and a `check` action; verdicts accepted from `checking` (wrong/pass restart the clock for the penalty); pause/resume keep the check. UI: `KeyQ` → `check`, panel tone `checking`, `photo-frame--checking`, host help line.
 - Spec changes: `game-engine` gains "Answer check" and updates "Pause" and "Host input outside an active turn"; `game-ui` gains "Answer check screen" and lists `Q` in "Host hotkeys".
 - Also shipped: setup category cards grow to fit a two-line name instead of clipping it (`flex-shrink: 0` on the name).
+- Also shipped: setup layout. The category grid (5 columns) fills the screen; names and options moved to the «Налаштування гри» panel opened from a header summary button; «Почати дуель» is in the header. Spec: game-ui "Setup layout".

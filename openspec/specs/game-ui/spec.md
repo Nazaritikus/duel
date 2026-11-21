@@ -25,6 +25,20 @@ The setup screen SHALL collect two player names (an empty name falls back to "Г
 - **WHEN** the host starts a duel with names "Назар" and "Олена", 90 s and a 5 s penalty, then reloads the page
 - **THEN** the setup screen is pre-filled with those names and settings
 
+### Requirement: Setup layout
+The category grid SHALL take all the setup screen height under the header. The header SHALL hold «Почати дуель» and a settings button that shows the player names, time and penalty.
+
+#### Scenario: Settings summary
+- **WHEN** the setup has names "Назар" and "Олена", 90 s and a 5 s penalty
+- **THEN** the header settings button reads "Назар vs Олена · 90 с · штраф 5 с"
+
+### Requirement: Setup settings panel
+The settings button SHALL open «Налаштування гри», an in-page panel with the player names, time, penalty and who starts. Changes SHALL apply at once. The panel SHALL close with «Готово», `Enter` in a name field or `Esc`. While it is open the setup form behind it SHALL not be focusable, and on close focus SHALL return to the settings button.
+
+#### Scenario: Close settings with Enter
+- **WHEN** the host types a name in «Налаштування гри» and presses `Enter`
+- **THEN** the panel closes, the duel does not start and the summary shows the new name
+
 ### Requirement: Setup controls
 On the setup screen, time, penalty, who starts and the category grid SHALL each be a single-choice group that arrow keys move through and that assistive technology announces as a group. Category names longer than two lines SHALL be cut with an ellipsis. Player-name inputs and the category search SHALL show no spellcheck or autocorrect marks.
 

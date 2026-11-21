@@ -32,6 +32,9 @@ function setup(overrides: Partial<Parameters<typeof SetupScreen>[0]> = {}) {
 
 const startButton = () => screen.getByRole('button', { name: /Почати дуель/ })
 const categories = () => within(screen.getByRole('group', { name: 'Категорії' }))
+const settingsButton = () => screen.getByRole('button', { name: /^Налаштування гри/ })
+const openSettings = () => fireEvent.click(settingsButton())
+const closeSettings = () => fireEvent.click(screen.getByRole('button', { name: 'Готово' }))
 
 describe('SetupScreen', () => {
   it('lists categories with photo counts', () => {
@@ -51,6 +54,7 @@ describe('SetupScreen', () => {
 
   it('groups each setting as native radios named by its legend', () => {
     setup()
+    openSettings()
     const time = within(screen.getByRole('group', { name: 'Час на гравця' }))
     const radios = time.getAllByRole('radio')
     expect(radios).toHaveLength(3)
@@ -77,6 +81,7 @@ describe('SetupScreen', () => {
 
   it('submits the chosen names and settings; an empty name stays empty for the fallback', () => {
     const { onStart } = setup()
+    openSettings()
     fireEvent.change(screen.getByRole('textbox', { name: 'Гравець 1' }), {
       target: { value: 'Назар' },
     })
@@ -84,6 +89,7 @@ describe('SetupScreen', () => {
     fireEvent.click(screen.getByRole('radio', { name: '90\u00a0с' }))
     fireEvent.click(screen.getByRole('radio', { name: '5\u00a0с' }))
     fireEvent.click(screen.getByRole('radio', { name: 'Випадково' }))
+    closeSettings()
     fireEvent.click(startButton())
     expect(onStart).toHaveBeenCalledWith({
       names: ['Назар', ''],
@@ -104,12 +110,14 @@ describe('SetupScreen', () => {
         firstPlayer: 'random',
       },
     })
+    expect(settingsButton()).toHaveTextContent('Назар vs Олена · 90 с · штраф 5 с')
+    expect(categories().getByRole('radio', { name: /Цифри/ })).toBeChecked()
+    openSettings()
     expect(screen.getByRole('textbox', { name: 'Гравець 1' })).toHaveValue('Назар')
     expect(screen.getByRole('textbox', { name: 'Гравець 2' })).toHaveValue('Олена')
     expect(screen.getByRole('radio', { name: '90\u00a0с' })).toBeChecked()
     expect(screen.getByRole('radio', { name: '5\u00a0с' })).toBeChecked()
     expect(screen.getByRole('radio', { name: 'Випадково' })).toBeChecked()
-    expect(categories().getByRole('radio', { name: /Цифри/ })).toBeChecked()
   })
 
   it('ignores a remembered category that is no longer listed', () => {
@@ -119,6 +127,7 @@ describe('SetupScreen', () => {
 
   it('limits names to 20 characters', () => {
     setup()
+    openSettings()
     expect(screen.getByRole('textbox', { name: 'Гравець 2' })).toHaveAttribute('maxLength', '20')
   })
 
@@ -131,5 +140,32 @@ describe('SetupScreen', () => {
   it('shows the loading state while the category loads', () => {
     setup({ initial: { ...DEFAULT_SETUP, categoryId: 'digits' }, starting: true })
     expect(screen.getByRole('button', { name: /Завантаження/ })).toBeDisabled()
+  })
+
+  it('summarises the settings in the header with fallback names', () => {
+    setup()
+    expect(settingsButton()).toHaveTextContent('Гравець 1 vs Гравець 2 · 60 с · штраф 3 с')
+  })
+
+  it('opens the settings panel over an inert form; Enter in a name or Esc closes it', () => {
+    setup()
+    settingsButton().focus()
+    openSettings()
+    const name = screen.getByRole('textbox', { name: 'Гравець 1' })
+    expect(screen.getByRole('dialog', { name: 'Налаштування гри' })).toBeInTheDocument()
+    expect(name).toHaveFocus()
+    expect(startButton().closest('[inert]')).not.toBeNull()
+
+    fireEvent.change(name, { target: { value: 'Назар' } })
+    fireEvent.submit(name)
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(startButton().closest('[inert]')).toBeNull()
+    expect(settingsButton()).toHaveFocus()
+    expect(settingsButton()).toHaveTextContent('Назар vs Гравець 2')
+
+    openSettings()
+    fireEvent.keyDown(window, { code: 'Escape', key: 'Escape' })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(settingsButton()).toHaveFocus()
   })
 })

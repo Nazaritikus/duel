@@ -1,12 +1,8 @@
-import { useCallback, useId, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useCallback, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import type { PlayerIndex } from '../../game'
 import { HostHelp } from './HostHelp'
-import {
-  NAME_MAX_LENGTH,
-  PENALTY_OPTIONS_MS,
-  TIME_OPTIONS_MS,
-  type GameSetup,
-} from './setupStorage'
+import { displayNames, type GameSetup } from './setupStorage'
+import { GearIcon, SetupSettings } from './SetupSettings'
 import type { CategorySummary } from './types'
 import type { Fullscreen } from './useFullscreen'
 
@@ -24,49 +20,6 @@ interface SetupScreenProps {
   muted?: boolean
   onToggleMute?: () => void
   fullscreen?: Fullscreen
-}
-
-interface Option<T> {
-  value: T
-  label: string
-  className?: string
-}
-
-function Segmented<T extends string | number>({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string
-  options: Option<T>[]
-  value: T
-  onChange: (value: T) => void
-}) {
-  const name = useId()
-  return (
-    <fieldset className="setup-option">
-      <legend className="setup-option__label">{label}</legend>
-      <div className="setup-option__pills">
-        {options.map((o, i) => (
-          <label
-            key={String(o.value)}
-            className={`pill ${o.className ?? ''} ${o.value === value ? 'pill--on' : ''}`}
-          >
-            <input
-              type="radio"
-              className="visually-hidden"
-              name={name}
-              value={i}
-              checked={o.value === value}
-              onChange={() => onChange(o.value)}
-            />
-            {o.label}
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  )
 }
 
 function CategoryGrid({
@@ -138,6 +91,8 @@ export function SetupScreen({
 }: SetupScreenProps) {
   const [helpOpen, setHelpOpen] = useState(false)
   const closeHelp = useCallback(() => setHelpOpen(false), [])
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const closeSettings = useCallback(() => setSettingsOpen(false), [])
   const [setup, setSetup] = useState<GameSetup>(initial)
   const [query, setQuery] = useState('')
   const update = (patch: Partial<GameSetup>) => setSetup((s) => ({ ...s, ...patch }))
@@ -161,16 +116,33 @@ export function SetupScreen({
     if (canStart) onStart({ ...setup, categoryId: selectedId })
   }
 
+  const [p1, p2] = displayNames(setup)
+
   return (
     <>
-      {/* While the help panel is open the form behind it cannot take focus. */}
-      <form className="setup" onSubmit={submit} inert={helpOpen}>
+      {/* While a panel is open the form behind it cannot take focus. */}
+      <form className="setup" onSubmit={submit} inert={helpOpen || settingsOpen}>
         <header className="setup__header">
           <div className="setup__brand">
             <div className="setup__logo" translate="no">
               DUEL
             </div>
-            <div className="setup__subtitle">Нова гра</div>
+            <button
+              type="button"
+              className="settings-summary"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <GearIcon />
+              <span className="visually-hidden">Налаштування гри: </span>
+              <span className="settings-summary__names">
+                <span className="settings-summary__p1">{p1}</span>
+                <span className="settings-summary__vs"> vs </span>
+                <span className="settings-summary__p2">{p2}</span>
+              </span>
+              <span className="settings-summary__options">
+                {` · ${setup.timePerPlayerMs / 1000}\u00a0с · штраф ${setup.penaltyMs / 1000}\u00a0с`}
+              </span>
+            </button>
           </div>
           <div className="setup__tools">
             {onToggleMute && (
@@ -191,34 +163,33 @@ export function SetupScreen({
             <button type="button" className="tool-button" onClick={() => setHelpOpen(true)}>
               Як провести гру
             </button>
+            <button type="submit" className="start-button" disabled={!canStart}>
+              {starting ? 'Завантаження…' : 'Почати дуель'}
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </button>
           </div>
         </header>
-
-        <div className="setup__players">
-          {([0, 1] as const).map((p) => (
-            <div key={p} className={`setup-player setup-player--p${p + 1}`}>
-              <label className="setup-player__label" htmlFor={`player-${p + 1}`}>
-                Гравець {p + 1}
-              </label>
-              <input
-                id={`player-${p + 1}`}
-                className="setup-player__input"
-                value={setup.names[p]}
-                maxLength={NAME_MAX_LENGTH}
-                placeholder={p === 0 ? 'Ім’я першого гравця' : 'Ім’я другого гравця'}
-                autoComplete="off"
-                autoCapitalize="words"
-                autoCorrect="off"
-                spellCheck={false}
-                onChange={(e) => setName(p, e.target.value)}
-              />
-            </div>
-          ))}
-        </div>
 
         <section className="setup__categories">
           <div className="setup__categories-head">
             <div className="setup-option__label">Категорія</div>
+            {startError && (
+              <div className="setup__error" role="alert">
+                Не вдалося завантажити категорію
+              </div>
+            )}
             <label className="visually-hidden" htmlFor="category-search">
               Пошук категорії
             </label>
@@ -244,59 +215,10 @@ export function SetupScreen({
             onRetry={onRetryList}
           />
         </section>
-
-        <footer className="setup__footer">
-          <div className="setup__options">
-            <Segmented
-              label="Час на гравця"
-              value={setup.timePerPlayerMs}
-              onChange={(v) => update({ timePerPlayerMs: v })}
-              options={TIME_OPTIONS_MS.map((ms) => ({ value: ms, label: `${ms / 1000}\u00a0с` }))}
-            />
-            <Segmented
-              label="Штраф за помилку"
-              value={setup.penaltyMs}
-              onChange={(v) => update({ penaltyMs: v })}
-              options={PENALTY_OPTIONS_MS.map((ms) => ({
-                value: ms,
-                label: `${ms / 1000}\u00a0с`,
-              }))}
-            />
-            <Segmented<PlayerIndex | 'random'>
-              label="Хто починає"
-              value={setup.firstPlayer}
-              onChange={(v) => update({ firstPlayer: v })}
-              options={[
-                { value: 0, label: 'Гравець 1', className: 'pill--p1' },
-                { value: 'random', label: 'Випадково' },
-              ]}
-            />
-          </div>
-          <div className="setup__start">
-            {startError && (
-              <div className="setup__error" role="alert">
-                Не вдалося завантажити категорію
-              </div>
-            )}
-            <button type="submit" className="start-button" disabled={!canStart}>
-              {starting ? 'Завантаження…' : 'Почати дуель'}
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </button>
-          </div>
-        </footer>
       </form>
+      {settingsOpen && (
+        <SetupSettings setup={setup} onName={setName} onChange={update} onClose={closeSettings} />
+      )}
       {helpOpen && <HostHelp onClose={closeHelp} />}
     </>
   )

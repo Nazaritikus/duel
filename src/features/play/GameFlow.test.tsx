@@ -56,16 +56,18 @@ async function startDuel(
   options: { names?: [string, string]; category?: RegExp; time?: string; penalty?: string } = {},
 ) {
   const { names = ['Назар', 'Олена'], category = /Цифри/, time, penalty } = options
+  fireEvent.click(screen.getByRole('button', { name: /^Налаштування гри/ }))
   fireEvent.change(screen.getByRole('textbox', { name: 'Гравець 1' }), {
     target: { value: names[0] },
   })
   fireEvent.change(screen.getByRole('textbox', { name: 'Гравець 2' }), {
     target: { value: names[1] },
   })
-  const grid = within(await screen.findByRole('group', { name: 'Категорії' }))
-  fireEvent.click(grid.getByRole('radio', { name: category }))
   if (time) fireEvent.click(screen.getByRole('radio', { name: time }))
   if (penalty) fireEvent.click(screen.getByRole('radio', { name: penalty }))
+  fireEvent.click(screen.getByRole('button', { name: 'Готово' }))
+  const grid = within(await screen.findByRole('group', { name: 'Категорії' }))
+  fireEvent.click(grid.getByRole('radio', { name: category }))
   fireEvent.click(screen.getByRole('button', { name: /Почати дуель/ }))
   await screen.findByTestId('countdown')
 }
@@ -117,8 +119,9 @@ describe('GameFlow', () => {
       t.advance(2_000)
     }
     fireEvent.click(screen.getByRole('button', { name: 'Інша категорія' }))
-    expect(screen.getByRole('textbox', { name: 'Гравець 1' })).toHaveValue('Назар')
-    expect(screen.getByRole('radio', { name: '90\u00a0с' })).toBeChecked()
+    expect(screen.getByRole('button', { name: /^Налаштування гри/ })).toHaveTextContent(
+      'Назар vs Олена · 90 с',
+    )
   })
 
   it('uses "Гравець 2" for an empty name', async () => {
@@ -136,8 +139,9 @@ describe('GameFlow', () => {
     expect(screen.getByRole('alertdialog', { name: 'Вийти в меню?' })).toBeInTheDocument()
     key('Enter')
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'Гравець 2' })).toHaveValue('Олена')
-    expect(screen.getByRole('radio', { name: '5\u00a0с' })).toBeChecked()
+    expect(screen.getByRole('button', { name: /^Налаштування гри/ })).toHaveTextContent(
+      'Назар vs Олена · 60 с · штраф 5 с',
+    )
   })
 
   it('lets Enter press a focused dialog button instead of confirming the exit', async () => {

@@ -74,16 +74,17 @@ kbd {
 .setup {
   width: 100%;
   height: 100%;
-  padding: 48px 64px;
+  padding: 40px 64px;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 28px;
 }
 
 .setup__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 24px;
 }
 
 .setup__logo {
@@ -93,9 +94,53 @@ kbd {
   letter-spacing: 0.04em;
 }
 
-.setup__subtitle {
+/* Header button that shows the session settings and opens «Налаштування гри». */
+.settings-summary {
+  min-width: 0;
+  overflow: hidden;
+  height: 44px;
+  padding: 0 16px 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
   font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.settings-summary svg {
+  flex-shrink: 0;
+}
+.settings-summary:hover {
+  border-color: var(--text-muted);
+}
+.settings-summary:focus-visible {
+  outline: 3px solid var(--text);
+  outline-offset: 3px;
+}
+.settings-summary__names {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.settings-summary__p1 {
+  color: var(--player-1);
+}
+.settings-summary__p2 {
+  color: var(--player-2);
+}
+.settings-summary__vs,
+.settings-summary__options {
   color: var(--text-muted);
+  font-weight: 400;
+}
+.settings-summary__options {
+  flex-shrink: 0;
 }
 
 .setup__players {
@@ -165,7 +210,10 @@ kbd {
   color: var(--placeholder);
 }
 
+/* The categories take all the height left under the header. */
 .setup__categories {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -173,8 +221,11 @@ kbd {
 
 .setup__categories-head {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 24px;
+}
+.setup__categories-head search {
+  margin-left: auto;
 }
 
 .category-grid {
@@ -183,10 +234,15 @@ kbd {
   padding: 0;
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-content: start;
   gap: 16px;
-  max-height: 208px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  /* Room for the focus outline inside the scroll box. */
+  padding: 6px;
+  margin: -6px;
 }
 
 .category-grid__note {
@@ -242,15 +298,9 @@ kbd {
   color: var(--text-muted);
 }
 
-.setup__footer {
-  margin-top: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-
 .setup__options {
   display: flex;
+  flex-wrap: wrap;
   gap: 40px;
 }
 
@@ -295,27 +345,20 @@ kbd {
   font-weight: 700;
 }
 
-.setup__start {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
-}
-
 .setup__error {
   font-size: 15px;
   color: var(--wrong-text);
 }
 
 .start-button {
-  height: 72px;
-  padding: 0 40px;
-  border-radius: 16px;
+  height: 52px;
+  padding: 0 28px;
+  border-radius: 12px;
   background: var(--player-1);
   color: var(--bg);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 22px;
+  font-size: 18px;
 }
 .start-button:disabled {
   /* Disabled is shown with a different fill and text, not with opacity. */
@@ -571,14 +614,41 @@ kbd {
 /* ---------- Host tools: sound, fullscreen, help (phase 9) ---------- */
 
 .setup__brand {
+  min-width: 0;
   display: flex;
-  align-items: baseline;
-  gap: 16px;
+  align-items: center;
+  gap: 24px;
 }
 
 .setup__tools {
+  flex-shrink: 0;
   display: flex;
+  align-items: center;
   gap: 10px;
+  white-space: nowrap;
+}
+
+.setup__tools .start-button {
+  margin-left: 14px;
+}
+
+/* «Налаштування гри» panel: its box is --surface, so fields and pills need a distinct fill. */
+.setup-settings {
+  width: 880px;
+}
+.setup-settings .setup-player__input {
+  background: var(--bg);
+}
+.setup-settings .pill:not(.pill--on) {
+  background: var(--border-panel);
+}
+.setup-settings .setup-option .setup-option__label {
+  font-size: 15px;
+  color: var(--text-muted);
+}
+.setup-settings .pill {
+  padding: 12px 20px;
+  font-size: 17px;
 }
 
 .tool-button {
